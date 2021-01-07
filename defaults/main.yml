@@ -1,0 +1,28 @@
+---
+# Helm chart version (uses Traefik v2.3.6)
+traefik_chart_version: "9.12.3"
+
+# Helm release name
+traefik_release_name: "traefik"
+
+# Helm repository name
+traefik_repo_name: "traefik"
+
+# Helm chart name
+traefik_chart_name: "{{ traefik_repo_name }}/{{ traefik_release_name }}"
+
+# Helm chart URL
+traefik_chart_url: "https://helm.traefik.io/traefik"
+
+# Kubernetes namespace where Traefik resources should be installed
+traefik_namespace: "traefik"
+
+# Directory that contains Helm chart values file. If you specify this
+# variable Ansible will try to locate a file called "values.yml.j2" or
+# "values.yaml.j2" in the specified directory (".j2" because you can
+# use the usual Jinja2 template stuff there). The content of this file
+# will be provided to "helm install/template" command as values file.
+# By default the directory is the users "$HOME" directory plus
+# "/traefik/helm". If the task doesn't find such a file it uses
+# the values in "templates/traefik_values_default.yml.j2" by default.
+traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"

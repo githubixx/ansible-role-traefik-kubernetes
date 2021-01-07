@@ -1,0 +1,111 @@
+# All possible Helm chart values here can be found at:
+# https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
+
+# These arguments are passed to Traefik's binary. For all options see:
+# https://doc.traefik.io/traefik/reference/static-configuration/cli/
+#
+# First one sets log level accordingly.
+#
+# Second one sets value of "kubernetes.io/ingress.class"
+# annotation to watch for. If a "standard" Kubernetes "Ingress" object
+# is submitted to Kubernetes API server  (instead of Traefik's own ingress
+# implementation called "IngressRoute"), Traefik will handle these requests
+# and route them accordingly.
+additionalArguments:
+  - "--log.level=INFO"
+  - "--providers.kubernetesingress.ingressclass=traefik"
+
+# Global arguments passed to Traefik's binary.
+# https://doc.traefik.io/traefik/reference/static-configuration/cli/
+#
+# First one disables periodical check if a new version has been released.
+#
+# Second one disables anonymous usage statistics. 
+globalArguments:
+  - "--global.checknewversion=false"
+  - "--global.sendanonymoususage=false"
+
+# This creates the Traefik deployment. As "DaemonSet" is specified here
+# this will create a Traefik instance on all Kubernetes worker nodes. If
+# only a subset of nodes should be used specify "affinity", "nodeSelector"
+# or "toleration's" accordingly. See link to Helm chart values above.
+deployment:
+  enabled: true
+  kind: DaemonSet
+  dnsPolicy: ClusterFirstWithHostNet
+
+# Instructs Traefik to listen on various ports.
+ports:
+  # The name of this one can't be changed as it is used for the readiness
+  # and liveness probes, but you can adjust its config to your liking.
+  # To access the dashboard you can use "kubectl port-forward" e.g.:
+  # kubectl -n traefik port-forward $(kubectl get pods --selector "app.kubernetes.io/name=traefik" --output=name -A | head -1) 9000:9000
+  # Opening http://localhost:9000/dashboard/ should show the dashboard.
+  traefik:
+    port: 9000
+    expose: false
+    protocol: TCP
+  # Unsecured incoming HTTP traffic. If you uncomment "redirectTo: websecure"
+  # all traffic that arrives at this port will be redirected to "websecure"
+  # entry point which means to the entry point that handles secure HTTPS traffic.
+  # But be aware that this could be problematic for cert-manager.
+  # Also "hostPort" is used. As "DaemonSet" was specified above that basically
+  # means that Traefik pods will answer requests on port 80 and 443 on all
+  # Kubernetes worker nodes. So if the hosts have a public IP and port 80/443
+  # are not protected by firewall, Traefik is available for requests from the
+  # Internet (what you normally want in case of Traefik ;-) ) For other
+  # options see link above. These settings are useful for baremetal or
+  # on-premise solutions with no further loadbalancer.
+  web:
+    port: 30080
+    hostPort: 80
+    expose: true
+    protocol: TCP
+    # redirectTo: websecure
+  # Entry point for HTTPS traffic.
+  websecure:
+    port: 30443
+    hostPort: 443
+    expose: true
+    protocol: TCP
+
+# These security settings are basically best practice to limit attack surface
+# as good as possible.
+# The attack surface can further limited with "seccomp" which is stable since
+# Kubernetes v1.19 and allows to limit system calls to a bare minimum. See:
+# https://kubernetes.io/docs/tutorials/clusters/seccomp/"
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsGroup: 65532
+  runAsNonRoot: true
+  runAsUser: 65532
+
+# All processes of the container are also part of this supplementary group ID.
+podSecurityContext:
+  fsGroup: 65532
+
+# Set log level of general log and enable access log.
+logs:
+  general:
+    level: INFO
+  access:
+    enabled: true
+
+# As Traefik web/websecure ports are exposed by "hostPort" a service isn't
+# needed.
+service:
+  enabled: false
+
+# CPU and RAM resource limits. These settings should also be set to
+# reasonable values in case of a memory leak e.g.
+resources:
+  requests:
+    cpu: "100m"
+    memory: "50Mi"
+  limits:
+    cpu: "300m"
+    memory: "150Mi"
+
