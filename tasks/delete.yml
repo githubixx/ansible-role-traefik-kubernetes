@@ -1,0 +1,39 @@
+---
+- name: Uninstall release via Helm
+  shell: # noqa 301
+    set -o errexit
+    set -o pipefail
+    set -o nounset
+
+    helm uninstall {{ traefik_release_name }} --namespace {{ traefik_namespace }}
+
+    exit 0
+  run_once: True
+  delegate_to: 127.0.0.1
+  changed_when: False
+  args:
+    executable: "/bin/bash"
+
+- name: Remove repository via Helm
+  shell: # noqa 301
+    set -o errexit
+    set -o pipefail
+    set -o nounset
+
+    helm repo remove {{ traefik_repo_name }}
+
+    exit 0
+  run_once: True
+  delegate_to: 127.0.0.1
+  changed_when: False
+  args:
+    executable: "/bin/bash"
+
+- name: Delete namespace
+  k8s:
+    name: "{{ traefik_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: absent
+  delegate_to: 127.0.0.1
+  run_once: True

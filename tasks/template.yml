@@ -1,0 +1,73 @@
+---
+- name: Include prerequisites
+  include_tasks: "tasks/prerequisites.yml"
+
+- name: Render values
+  block:
+    - name: Create temporary file for Helm values
+      tempfile:
+        state: file
+        suffix: traefik_values
+      delegate_to: 127.0.0.1
+      run_once: True
+      register: traefik_values_tmp_file
+
+    - name: Select values file for Helm template
+      template:
+        src: "{{ lookup('first_found', params) }}"
+        dest: "{{ traefik_values_tmp_file.path }}"
+        mode: 0600
+      delegate_to: 127.0.0.1
+      run_once: True
+      vars:
+        params:
+          files:
+            - values.yml.j2
+            - values.yaml.j2
+            - traefik_values_default.yml.j2
+          paths:
+            - "{{ traefik_chart_values_directory }}"
+            - templates
+
+    - name: Render template
+      shell:
+        set -o errexit
+        set -o pipefail
+        set -o nounset
+
+        helm template {{ traefik_release_name }} {{ traefik_chart_name }}
+        --namespace {{ traefik_namespace }}
+        --version {{ traefik_chart_version }}
+        --values {{ traefik_values_tmp_file.path }}
+
+        exit 0
+      run_once: True
+      delegate_to: 127.0.0.1
+      register: traefik_template
+      args:
+        executable: "/bin/bash"
+
+    - name: Delete temporary file for Helm values
+      file:
+        path: "{{ traefik_values_tmp_file.path }}"
+        state: absent
+      run_once: True
+      delegate_to: 127.0.0.1
+      when: traefik_values_tmp_file.path is defined
+
+    - name: Output rendered template
+      debug:
+        msg: "{{ traefik_template.stdout }}"
+      run_once: True
+      delegate_to: 127.0.0.1
+      changed_when: False
+
+  rescue:
+    - name: Delete temporary file for Helm values
+      file:
+        path: "{{ traefik_values_tmp_file.path }}"
+        state: absent
+      run_once: True
+      delegate_to: 127.0.0.1
+      when: traefik_values_tmp_file.path is defined
+
