@@ -8,7 +8,7 @@ The provided default settings are optimized for a bare-metal/on-premise Kubernet
 - Traefik instances will be deployed as `DaemonSet`
 - Traefik pods uses `hostPort`
 - Traefik listens on port `80` on all interfaces of the host for incoming HTTP requests
-- Traefik listens on port `443` on all interfaces of the host for incoming HTTP request
+- Traefik listens on port `443` on all interfaces of the host for incoming HTTPS request
 - Traefik dashboard is enabled and is not exposed to the public internet
 - TLS certificates are provided by [cert-manager](https://cert-manager.io) (My Ansible role [cert-manager-kubernetes](https://github.com/githubixx/ansible-role-cert-manager-kubernetes) can be used to install cert-manager)
 
@@ -28,12 +28,17 @@ Also `kubectl` should to be installed. At least you need a proper configured `KU
 
 And of course you need a Kubernetes Cluster ;-)
 
+Changelog
+---------
+
+see [CHANGELOG.md](https://github.com/githubixx/ansible-role-traefik-kubernetes/blob/master/CHANGELOG.md)
+
 Role Variables
 --------------
 
 ```yaml
-# Helm chart version (uses Traefik v2.3.6)
-traefik_chart_version: "9.12.3"
+# Helm chart version (uses Traefik v2.4.8)
+traefik_chart_version: "9.19.1"
 
 # Helm release name
 traefik_release_name: "traefik"
