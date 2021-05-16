@@ -28,12 +28,17 @@ Also `kubectl` should to be installed. At least you need a proper configured `KU
 
 And of course you need a Kubernetes Cluster ;-)
 
+Changelog
+---------
+
+see [CHANGELOG.md](https://github.com/githubixx/ansible-role-traefik-kubernetes/blob/master/CHANGELOG.md)
+
 Role Variables
 --------------
 
 ```yaml
-# Helm chart version (uses Traefik v2.3.6)
-traefik_chart_version: "9.12.3"
+# Helm chart version (uses Traefik v2.4.8)
+traefik_chart_version: "9.19.1"
 
 # Helm release name
 traefik_release_name: "traefik"
