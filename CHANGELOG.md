@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+**2.0.0+10.1.1**
+
+- update Helm chart to `v10.1.1`
+- Traefik Helm chart version >= `v10.x.x` needs at least Kubernetes `v1.16`
+- use Traefik `v2.4.13`
+- Default Traefik version is now specified in `templates/traefik_values_default.yml.j2`
+
 **1.1.0+9.19.1**
 
 - update Helm chart to `v9.19.1` (uses Traefik `v2.4.8`)
