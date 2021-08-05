@@ -75,6 +75,11 @@ The first thing to do is to check `templates/traefik_values_default.yml.j2`. Thi
 # All possible Helm chart values here can be found at:
 # https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
 
+image:
+  name: traefik
+  tag: "2.4.13"
+  pullPolicy: IfNotPresent
+
 # These arguments are passed to Traefik's binary. For all options see:
 # https://doc.traefik.io/traefik/reference/static-configuration/cli/
 #

@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+**2.0.1+10.1.1**
+
+- update README
+
 **2.0.0+10.1.1**
 
 - update Helm chart to `v10.1.1`
