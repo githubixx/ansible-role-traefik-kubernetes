@@ -1,6 +1,19 @@
 Changelog
 ---------
 
+**2.1.0+10.3.0**
+
+- update Helm chart to `v10.3.0`
+- use Traefik `v2.5.0`
+
+The following note is only relevant if you upgrade from a chart version `< v10.3.0` (which introduced Traefik `v2.5.0`). For new installations it's not relevant.
+
+**Important note:** Before upgrading read this issue [](https://github.com/traefik/traefik-helm-chart/issues/359) as it may hit you if you upgrade from a chart version `< v10.3.0` (which introduced Traefik `v2.5.0`). If you already have a `CustomResourceDefinition` (CRD) called `middlewaretcps.traefik.containo.us` (check with `kubectl describe crds middlewaretcps.traefik.containo.us`) upgrade shouldn't be an issue.
+
+You've basically two options:
+- make sure that the CRD is installed before you upgrade e.g. via `curl https://raw.githubusercontent.com/traefik/traefik-helm-chart/master/traefik/crds/middlewarestcp.yaml | kubectl apply -f -`
+- delete the Traefik resources via `ansible-playbook --tags=role-traefik-kubernetes --extra-vars action=delete k8s.yml` and install again via `ansible-playbook --tags=role-traefik-kubernetes --extra-vars action=install k8s.yml`. This also adds the new CRD `middlewaretcps.traefik.containo.us`. This of course will uninstall Traefik! So all ingress traffic will be offline until you install Traefik again.
+
 **2.0.1+10.1.1**
 
 - update README
