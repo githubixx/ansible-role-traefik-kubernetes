@@ -17,7 +17,7 @@ For further information about the Helm chart settings see below.
 Versions
 --------
 
-I tag every release and try to stay with [semantic versioning](http://semver.org). If you want to use the role I recommend to checkout the latest tag. The master branch is basically development while the tags mark stable releases. But in general I try to keep master in good shape too. A tag `2.1.0+10.3.0` means this is release `2.1.0` of this role and it uses Helm chart version `10.3.0` (the `Traefik` version used is specified in the values file [see below]). If the role itself changes `X.Y.Z` before `+` will increase. If the Traefik chart version changes `X.Y.Z` after `+` will increase too. This allows to tag bugfixes and new major versions of the role while it's still developed for a specific Traefik release.
+I tag every release and try to stay with [semantic versioning](http://semver.org). If you want to use the role I recommend to checkout the latest tag. The master branch is basically development while the tags mark stable releases. But in general I try to keep master in good shape too. A tag `2.1.1+10.3.2` means this is release `2.1.1` of this role and it uses Helm chart version `10.3.2` (the `Traefik` version used is specified in the values file [see below]). If the role itself changes `X.Y.Z` before `+` will increase. If the Traefik chart version changes `X.Y.Z` after `+` will increase too. This allows to tag bugfixes and new major versions of the role while it's still developed for a specific Traefik release.
 
 Requirements
 ------------
@@ -38,7 +38,7 @@ Role Variables
 
 ```yaml
 # Helm chart version
-traefik_chart_version: "10.3.0"
+traefik_chart_version: "10.3.2"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -77,7 +77,7 @@ The first thing to do is to check `templates/traefik_values_default.yml.j2`. Thi
 
 image:
   name: traefik
-  tag: "2.5.0"
+  tag: "2.5.2"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
