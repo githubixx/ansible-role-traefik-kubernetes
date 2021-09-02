@@ -1,6 +1,6 @@
 ---
-# Helm chart version (Traefik 2.5.0)
-traefik_chart_version: "10.3.0"
+# Helm chart version (Traefik 2.5.2)
+traefik_chart_version: "10.3.2"
 
 # Helm release name
 traefik_release_name: "traefik"
