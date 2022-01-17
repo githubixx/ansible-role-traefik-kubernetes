@@ -9,7 +9,7 @@
         state: file
         suffix: traefik_values
       delegate_to: 127.0.0.1
-      run_once: True
+      run_once: true
       register: traefik_values_tmp_file
 
     - name: Select values file for Helm template
@@ -18,7 +18,7 @@
         dest: "{{ traefik_values_tmp_file.path }}"
         mode: 0600
       delegate_to: 127.0.0.1
-      run_once: True
+      run_once: true
       vars:
         params:
           files:
@@ -41,7 +41,7 @@
         --values {{ traefik_values_tmp_file.path }}
 
         exit 0
-      run_once: True
+      run_once: true
       delegate_to: 127.0.0.1
       register: traefik_template
       args:
@@ -51,7 +51,7 @@
       file:
         path: "{{ traefik_values_tmp_file.path }}"
         state: absent
-      run_once: True
+      run_once: true
       delegate_to: 127.0.0.1
       when: traefik_values_tmp_file.path is defined
 
@@ -60,7 +60,6 @@
       file:
         path: "{{ traefik_values_tmp_file.path }}"
         state: absent
-      run_once: True
+      run_once: true
       delegate_to: 127.0.0.1
       when: traefik_values_tmp_file.path is defined
-
