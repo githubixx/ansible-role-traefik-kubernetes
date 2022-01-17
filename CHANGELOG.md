@@ -4,6 +4,8 @@
 
 - update Helm chart to `v10.9.1`
 - use Traefik `v2.5.6`
+- fix linting issues
+- remove unneeded directories
 
 ## 2.1.1+10.3.2
 
