@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3.0+10.14.1
+
+- update Helm chart to `v10.14.1`
+- use Traefik `v2.6.1`
+
+**Important note:**: Make sure that the `middlewarestcp` CRD is updated before you upgrade e.g. via `curl https://raw.githubusercontent.com/traefik/traefik-helm-chart/v10.14.1/traefik/crds/middlewarestcp.yaml | kubectl apply -f -`
+
 ## 2.2.0+10.9.1
 
 - update Helm chart to `v10.9.1`
