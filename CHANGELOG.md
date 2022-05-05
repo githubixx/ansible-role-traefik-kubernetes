@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.6.6+10.19.5
+
+- update Helm chart to `v10.19.5`
+- use Traefik `v2.6.6`
+
 ## 2.3.0+10.14.1
 
 - update Helm chart to `v10.14.1`
