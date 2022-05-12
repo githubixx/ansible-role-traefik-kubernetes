@@ -26,3 +26,18 @@ traefik_namespace: "traefik"
 # "/traefik/helm". If the task doesn't find such a file it uses
 # the values in "templates/traefik_values_default.yml.j2" by default.
 traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"
+
+# By default CRDs (CustomResourceDefinitions) are not installed. Set to
+# "true" if CRDs should be installed. Also see:
+# https://github.com/traefik/traefik-helm-chart/tree/master/traefik/crds
+# The following CRDs will be installed:
+#   - ingressroutes.traefik.containo.us
+#   - ingressroutetcps.traefik.containo.us
+#   - ingressrouteudps.traefik.containo.us
+#   - middlewares.traefik.containo.us
+#   - middlewaretcps.traefik.containo.us
+#   - serverstransports.traefik.containo.us
+#   - tlsoptions.traefik.containo.us
+#   - tlsstores.traefik.containo.us
+#   - traefikservices.traefik.containo.us
+traefik_install_crds: false
