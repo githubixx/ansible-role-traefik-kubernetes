@@ -4,6 +4,15 @@
 
 - name: Render values
   block:
+    - name: Install Traefik CRDs
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', item) | from_yaml }}"
+      with_fileglob:
+        - "crds/*.yaml"
+      when:
+        - traefik_install_crds
+
     - name: Create temporary file for Helm values
       tempfile:
         state: file
@@ -53,7 +62,8 @@
         state: absent
       run_once: true
       delegate_to: 127.0.0.1
-      when: traefik_values_tmp_file.path is defined
+      when:
+        - traefik_values_tmp_file.path is defined
 
   rescue:
     - name: Delete temporary file for Helm values
@@ -62,4 +72,5 @@
         state: absent
       run_once: true
       delegate_to: 127.0.0.1
-      when: traefik_values_tmp_file.path is defined
+      when:
+        - traefik_values_tmp_file.path is defined

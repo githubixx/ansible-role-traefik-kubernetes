@@ -38,7 +38,7 @@ Role Variables
 
 ```yaml
 # Helm chart version
-traefik_chart_version: "10.14.1"
+traefik_chart_version: "10.19.5"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -64,6 +64,21 @@ traefik_namespace: "traefik"
 # "/traefik/helm". If the task doesn't find such a file it uses
 # the values in "templates/traefik_values_default.yml.j2" by default.
 traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"
+
+# By default CRDs (CustomResourceDefinitions) are not installed. Set to
+# "true" if CRDs should be installed. Also see:
+# https://github.com/traefik/traefik-helm-chart/tree/master/traefik/crds
+# The following CRDs will be installed:
+#   - ingressroutes.traefik.containo.us
+#   - ingressroutetcps.traefik.containo.us
+#   - ingressrouteudps.traefik.containo.us
+#   - middlewares.traefik.containo.us
+#   - middlewaretcps.traefik.containo.us
+#   - serverstransports.traefik.containo.us
+#   - tlsoptions.traefik.containo.us
+#   - tlsstores.traefik.containo.us
+#   - traefikservices.traefik.containo.us
+traefik_install_crds: false
 ```
 
 Usage
@@ -77,7 +92,7 @@ The first thing to do is to check `templates/traefik_values_default.yml.j2`. Thi
 
 image:
   name: traefik
-  tag: "2.6.1"
+  tag: "2.6.6"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
