@@ -10,20 +10,20 @@ galaxy_info:
     - name: ArchLinux
     - name: Ubuntu
       versions:
-        - bionic
-        - focal
+        - "bionic"
+        - "focal"
     - name: Debian
       versions:
-        - buster
-        - bullseye
+        - "buster"
+        - "bullseye"
     - name: Fedora
       versions:
-        - 34
-        - 35
+        - "35"
+        - "36"
     - name: EL
       versions:
-        - 7
-        - 8
+        - "7"
+        - "8"
   galaxy_tags:
     - kubernetes
     - k8s
