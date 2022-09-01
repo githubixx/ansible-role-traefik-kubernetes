@@ -1,6 +1,6 @@
 ---
 - name: Uninstall release via Helm
-  shell:  # noqa 301
+  shell:
     set -o errexit
     set -o pipefail
     set -o nounset
@@ -15,7 +15,7 @@
     executable: "/bin/bash"
 
 - name: Remove repository via Helm
-  shell:  # noqa 301
+  shell:
     set -o errexit
     set -o pipefail
     set -o nounset
