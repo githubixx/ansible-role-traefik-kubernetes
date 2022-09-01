@@ -4,6 +4,7 @@
 
 - update Helm chart to `v10.24.1`
 - use Traefik `v2.8.3`
+- update Traefik CRDs to v2.8.x
 
 ## 2.6.6+10.19.5
 
