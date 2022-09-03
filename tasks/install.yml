@@ -14,7 +14,7 @@
         - traefik_install_crds
 
     - name: Create temporary file for Helm values
-      tempfile:
+      ansible.builtin.tempfile:
         state: file
         suffix: traefik_values
       delegate_to: 127.0.0.1
@@ -22,7 +22,7 @@
       register: traefik_values_tmp_file
 
     - name: Select values file for Helm template
-      template:
+      ansible.builtin.template:
         src: "{{ lookup('first_found', params) }}"
         dest: "{{ traefik_values_tmp_file.path }}"
         mode: 0600
@@ -57,7 +57,7 @@
         executable: "/bin/bash"
 
     - name: Delete temporary file for Helm values
-      file:
+      ansible.builtin.file:
         path: "{{ traefik_values_tmp_file.path }}"
         state: absent
       run_once: true
@@ -67,7 +67,7 @@
 
   rescue:
     - name: Delete temporary file for Helm values
-      file:
+      ansible.builtin.file:
         path: "{{ traefik_values_tmp_file.path }}"
         state: absent
       run_once: true
