@@ -22,9 +22,15 @@ I tag every release and try to stay with [semantic versioning](http://semver.org
 Requirements
 ------------
 
-You need to have [Helm 3](https://helm.sh/) binary installed on that host where `ansible-playbook` runs. You can either try to use your favorite package manager if your distribution includes `helm` in its repository or use one of the Ansible `Helm` roles (e.g. [helm](https://galaxy.ansible.com/gantsign/helm) or directly download the binary from [Helm releases)[https://github.com/helm/helm/releases]) and put it into `/usr/local/bin/` directory e.g.) For Archlinux Helm can be installed via `sudo pacman -S helm` e.g.
+You need to have [Helm 3](https://helm.sh/) binary installed on that host where `ansible-playbook` is executed or on that host where you delegated the playbooks to (e.g. by using `traefik_delegate_to` variable). You can either
 
-Also `kubectl` should to be installed. At least you need a proper configured `KUBECONFIG` (which is located at `${HOME}/.kube/config` by default).
+- use your favorite package manager if your distribution includes `helm` in its repository (for Archlinux use `sudo pacman -S helm` e.g.)
+- or use one of the Ansible `Helm` roles (e.g. [helm](https://galaxy.ansible.com/gantsign/helm) - which gets also installed if you use `ansible-galaxy role install -vr requirements.yml`
+- or directly download the binary from [Helm releases)[https://github.com/helm/helm/releases]) and put it into `/usr/local/bin/` directory e.g.
+
+A a properly configured `KUBECONFIG` is also needed (which is located at `${HOME}/.kube/config` by default). Normally if `kubectl` works with your cluster then you everything should be already fine in this regards.
+
+Additionally the Ansible `kubernetes.core` collection needs to be installed. This can be done by using the `collections.yml` file included in this role: `ansible-galaxy install -r collections.yml`.
 
 And of course you need a Kubernetes Cluster ;-)
 
@@ -79,6 +85,12 @@ traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"
 #   - tlsstores.traefik.containo.us
 #   - traefikservices.traefik.containo.us
 traefik_install_crds: false
+
+# By default all tasks that needs to communicate with the Kubernetes
+# cluster are executed on your local host (127.0.0.1). But if that one
+# doesn't have direct connection to this cluster or should be executed
+# elsewhere this variable can be changed accordingly. 
+traefik_delegate_to: 127.0.0.1
 ```
 
 Usage

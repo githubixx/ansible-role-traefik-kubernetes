@@ -41,3 +41,10 @@ traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"
 #   - tlsstores.traefik.containo.us
 #   - traefikservices.traefik.containo.us
 traefik_install_crds: false
+
+# By default all tasks that needs to communicate with the Kubernetes
+# cluster are executed on your local host (127.0.0.1). But if that one
+# doesn't have direct connection to this cluster or should be executed
+# elsewhere this variable can be changed accordingly.
+traefik_delegate_to: 127.0.0.1
+
