@@ -8,7 +8,7 @@
       ansible.builtin.tempfile:
         state: file
         suffix: traefik_values
-      delegate_to: 127.0.0.1
+      delegate_to: "{{ traefik_delegate_to }}"
       run_once: true
       register: traefik_values_tmp_file
 
@@ -17,7 +17,7 @@
         src: "{{ lookup('first_found', params) }}"
         dest: "{{ traefik_values_tmp_file.path }}"
         mode: 0600
-      delegate_to: 127.0.0.1
+      delegate_to: "{{ traefik_delegate_to }}"
       run_once: true
       vars:
         params:
@@ -42,7 +42,7 @@
 
         exit 0
       run_once: true
-      delegate_to: 127.0.0.1
+      delegate_to: "{{ traefik_delegate_to }}"
       register: traefik_template
       args:
         executable: "/bin/bash"
@@ -52,14 +52,14 @@
         path: "{{ traefik_values_tmp_file.path }}"
         state: absent
       run_once: true
-      delegate_to: 127.0.0.1
+      delegate_to: "{{ traefik_delegate_to }}"
       when: traefik_values_tmp_file.path is defined
 
     - name: Output rendered template
       ansible.builtin.debug:
         msg: "{{ traefik_template.stdout }}"
       run_once: true
-      delegate_to: 127.0.0.1
+      delegate_to: "{{ traefik_delegate_to }}"
       changed_when: false
 
   rescue:
@@ -68,5 +68,5 @@
         path: "{{ traefik_values_tmp_file.path }}"
         state: absent
       run_once: true
-      delegate_to: 127.0.0.1
+      delegate_to: "{{ traefik_delegate_to }}"
       when: traefik_values_tmp_file.path is defined
