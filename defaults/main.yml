@@ -47,4 +47,3 @@ traefik_install_crds: false
 # doesn't have direct connection to this cluster or should be executed
 # elsewhere this variable can be changed accordingly.
 traefik_delegate_to: 127.0.0.1
-
