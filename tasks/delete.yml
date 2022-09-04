@@ -1,31 +1,18 @@
 ---
 - name: Uninstall release via Helm
-  ansible.builtin.shell:
-    set -o errexit
-    set -o pipefail
-    set -o nounset
-
-    helm uninstall {{ traefik_release_name }} --namespace {{ traefik_namespace }}
-
-    exit 0
+  kubernetes.core.helm:
+    name: "{{ traefik_release_name }}"
+    release_namespace: "{{ traefik_namespace }}"
+    state: absent
   run_once: true
   delegate_to: "{{ traefik_delegate_to }}"
-  args:
-    executable: "/bin/bash"
 
 - name: Remove repository via Helm
-  shell:
-    set -o errexit
-    set -o pipefail
-    set -o nounset
-
-    helm repo remove {{ traefik_repo_name }}
-
-    exit 0
+  kubernetes.core.helm:
+    name: "{{ traefik_repo_name }}"
+    purge: "yes"
   run_once: true
   delegate_to: "{{ traefik_delegate_to }}"
-  args:
-    executable: "/bin/bash"
 
 - name: Delete namespace
   kubernetes.core.k8s:
