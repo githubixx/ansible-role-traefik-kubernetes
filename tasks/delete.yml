@@ -1,6 +1,6 @@
 ---
 - name: Uninstall release via Helm
-  shell:
+  ansible.builtin.shell:
     set -o errexit
     set -o pipefail
     set -o nounset
@@ -30,7 +30,7 @@
     executable: "/bin/bash"
 
 - name: Delete namespace
-  k8s:
+  kubernetes.core.k8s:
     name: "{{ traefik_namespace }}"
     api_version: v1
     kind: Namespace
