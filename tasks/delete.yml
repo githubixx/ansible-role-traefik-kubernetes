@@ -9,8 +9,7 @@
 
     exit 0
   run_once: true
-  delegate_to: 127.0.0.1
-  changed_when: false
+  delegate_to: "{{ traefik_delegate_to }}"
   args:
     executable: "/bin/bash"
 
@@ -24,8 +23,7 @@
 
     exit 0
   run_once: true
-  delegate_to: 127.0.0.1
-  changed_when: false
+  delegate_to: "{{ traefik_delegate_to }}"
   args:
     executable: "/bin/bash"
 
@@ -35,5 +33,5 @@
     api_version: v1
     kind: Namespace
     state: absent
-  delegate_to: 127.0.0.1
+  delegate_to: "{{ traefik_delegate_to }}"
   run_once: true
