@@ -6,13 +6,29 @@
     state: absent
   run_once: true
   delegate_to: "{{ traefik_delegate_to }}"
+  register: traefik__helm_show_uninstall_release
+
+- name: Uninstall release via Helm (helm command executed)
+  ansible.builtin.debug:
+    var: traefik__helm_show_uninstall_release.command
+  delegate_to: "{{ traefik_delegate_to }}"
+  run_once: true
+  when: traefik_helm_show_commands
 
 - name: Remove repository via Helm
-  kubernetes.core.helm:
+  kubernetes.core.helm_repository:
     name: "{{ traefik_repo_name }}"
-    purge: "yes"
+    repo_state: absent
   run_once: true
   delegate_to: "{{ traefik_delegate_to }}"
+  register: traefik__helm_show_remove_repository
+
+- name: Remove repository via Helm (helm command executed)
+  ansible.builtin.debug:
+    var: traefik__helm_show_remove_repository.command
+  delegate_to: "{{ traefik_delegate_to }}"
+  run_once: true
+  when: traefik_helm_show_commands
 
 - name: Delete namespace
   kubernetes.core.k8s:
