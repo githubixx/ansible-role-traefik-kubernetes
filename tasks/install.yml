@@ -61,6 +61,7 @@
       run_once: true
       when:
         - traefik__helm_install_chart is defined
+        - traefik__helm_show_install_chart.command is defined
         - traefik_helm_show_commands
 
     - name: Delete temporary file for Helm values
