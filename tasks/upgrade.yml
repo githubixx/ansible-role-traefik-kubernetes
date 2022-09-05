@@ -40,17 +40,29 @@
             - "{{ traefik_chart_values_directory }}"
             - templates
 
-    - name: Upgrade chart
+    - name: Upgrade Helm chart
       kubernetes.core.helm:
         name: "{{ traefik_release_name }}"
         chart_ref: "{{ traefik_chart_name }}"
         chart_version: "{{ traefik_chart_version }}"
         release_namespace: "{{ traefik_namespace }}"
         create_namespace: false
+        update_repo_cache: true
         values_files:
           - "{{ traefik_values_tmp_file.path }}"
       run_once: true
       delegate_to: "{{ traefik_delegate_to }}"
+      register: traefik__helm_upgrade_chart
+
+    - name: Upgrade Helm chart (helm command executed)
+      ansible.builtin.debug:
+        var: traefik__helm_upgrade_chart.command
+      delegate_to: "{{ traefik_delegate_to }}"
+      run_once: true
+      when:
+        - traefik__helm_upgrade_chart is defined
+        - traefik__helm_upgrade_chart.command is defined
+        - traefik_helm_show_commands
 
     - name: Delete temporary file for Helm values
       ansible.builtin.file:
