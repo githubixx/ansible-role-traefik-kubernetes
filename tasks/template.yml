@@ -64,12 +64,16 @@
         dest: "{{ traefik_template_output_directory }}"
         state: directory
         mode: 0700
+      run_once: true
+      delegate_to: 127.0.0.1
 
     - name: Write templates to file
       ansible.builtin.copy:
         dest: "{{ traefik_template_output_directory }}/template.yml"
         content: "{{ traefik__template.stdout }}"
         mode: 0644
+      run_once: true
+      delegate_to: 127.0.0.1
 
   rescue:
     - name: Delete temporary file for Helm values
