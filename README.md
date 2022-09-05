@@ -17,7 +17,7 @@ For further information about the Helm chart settings see below.
 Versions
 --------
 
-I tag every release and try to stay with [semantic versioning](http://semver.org). If you want to use the role I recommend to checkout the latest tag. The master branch is basically development while the tags mark stable releases. But in general I try to keep master in good shape too. A tag `2.3.0+10.14.1` means this is release `2.3.0` of this role and it uses Helm chart version `10.14.1` (the `Traefik` version used is specified in the values file [see below]). If the role itself changes `X.Y.Z` before `+` will increase. If the Traefik chart version changes `X.Y.Z` after `+` will increase too. This allows to tag bugfixes and new major versions of the role while it's still developed for a specific Traefik release.
+I tag every release and try to stay with [semantic versioning](http://semver.org). If you want to use the role I recommend to checkout the latest tag. The master branch is basically development while the tags mark stable releases. But in general I try to keep master in good shape too. A tag `3.0.0+10.24.2` means this is release `3.0.0` of this role and it uses Helm chart version `10.24.2` (the `Traefik` version used is specified in the values file [see below]). If the role itself changes `X.Y.Z` before `+` will increase. If the Traefik chart version changes `X.Y.Z` after `+` will increase too. This allows to tag bugfixes and new major versions of the role while it's still developed for a specific Traefik release.
 
 Requirements
 ------------
@@ -28,7 +28,7 @@ You need to have [Helm 3](https://helm.sh/) binary installed on that host where 
 - or use one of the Ansible `Helm` roles (e.g. [helm](https://galaxy.ansible.com/gantsign/helm) - which gets also installed if you use `ansible-galaxy role install -vr requirements.yml`
 - or directly download the binary from [Helm releases)[https://github.com/helm/helm/releases]) and put it into `/usr/local/bin/` directory e.g.
 
-A a properly configured `KUBECONFIG` is also needed (which is located at `${HOME}/.kube/config` by default). Normally if `kubectl` works with your cluster then you everything should be already fine in this regards.
+A properly configured `KUBECONFIG` is also needed (which is located at `${HOME}/.kube/config` by default). Normally if `kubectl` works with your cluster then you everything should be already fine in this regards.
 
 Additionally the Ansible `kubernetes.core` collection needs to be installed. This can be done by using the `collections.yml` file included in this role: `ansible-galaxy install -r collections.yml`.
 
@@ -44,7 +44,7 @@ Role Variables
 
 ```yaml
 # Helm chart version
-traefik_chart_version: "10.24.1"
+traefik_chart_version: "10.24.2"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -89,8 +89,18 @@ traefik_install_crds: false
 # By default all tasks that needs to communicate with the Kubernetes
 # cluster are executed on your local host (127.0.0.1). But if that one
 # doesn't have direct connection to this cluster or should be executed
-# elsewhere this variable can be changed accordingly. 
+# elsewhere this variable can be changed accordingly.
 traefik_delegate_to: 127.0.0.1
+
+# Shows the "helm" command that was executed if a task uses Helm to
+# install, update/upgrade or deletes such a resource.
+traefik_helm_show_commands: false
+
+# Without "action" variable defined this role will only render a file
+# with all the resources that will be installed or upgraded. The rendered
+# file with the resources will be called "template.yml" and will be
+# placed in the directory specified below.
+traefik_template_output_directory: "{{ '~/traefik/template' | expanduser }}"
 ```
 
 Usage
@@ -104,7 +114,7 @@ The first thing to do is to check `templates/traefik_values_default.yml.j2`. Thi
 
 image:
   name: traefik
-  tag: "2.8.3"
+  tag: "2.8.4"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
@@ -226,9 +236,11 @@ The default action is to just render the Kubernetes resources YAML file after re
 ansible-playbook --tags=role-traefik-kubernetes k8s.yml
 ```
 
-One of the final tasks is called `TASK [githubixx.traefik-kubernetes : Output rendered template]`. This allows to check the YAML file before Traefik gets deployed. As you might figure out the output isn't that "pretty". To get around this you can either set `ANSIBLE_STDOUT_CALLBACK=debug` environment variable or `stdout_callback = debug` in `ansible.cfg`. If you run the `ansible-playbook` command again now the YAML output should now look way better.
+If you want to see the `helm` commands and the parameters which were executed in the logs you can also specify `--extra-vars traefik_helm_show_commands=true`.
 
-If the rendered output contains everything you need the role can be installed which finally deploys Traefik:
+One of the final tasks is called `TASK [githubixx.traefik_kubernetes : Write templates to file]`. This renders the template with the resources that will be created into the directory specified in `traefik_template_output_directory`. The file will be called `template.yml`. The directory/file will be placed on your local machine to be able to inspect it.
+
+If the rendered template contains everything you need the role can be installed which finally deploys Traefik:
 
 ```bash
 ansible-playbook --tags=role-traefik-kubernetes --extra-vars action=install k8s.yml
@@ -238,7 +250,7 @@ To check if everything was deployed use the usual `kubectl` commands like `kubec
 
 As Traefik issues updates/upgrades every few weeks/months the role also can do updates/upgrades. This method can also be used to change existing values without upgrading the Traefik version e.g. Also see [Traefik releases](https://github.com/traefik/traefik/releases) before updating Traefik. Changes to the Helm chart can be found in the [commit history](https://github.com/traefik/traefik-helm-chart/commits/master).
 
-If you want to upgrade Traefik/Helm chart you basically only need to change `traefik_chart_version` variable e.g. from `9.12.3` to `9.13.0`. If only parameters should be changed update the values accordingly.
+If you want to upgrade Traefik/Helm chart you basically only need to change `traefik_chart_version` variable e.g. from `10.21.1` to `10.24.2`. You might also need to change `image.tag` value in `templates/traefik_values_default.yml.j2`. If only parameters should be changed update the values accordingly.
 
 So to do the Traefik update or to roll out the new values run
 
@@ -275,6 +287,43 @@ Example 2 (assign tag to role):
 ```
 
 The host `traefik` in the example playbook is most probably just `localhost` specified in Ansible's `hosts` file or whatever host you want to use as "runner" so to say. Just make sure that this host has `helm` installed and has a valid `kubeconfig` (which is normally the case if `kubectl` command works with the Kubernetes cluster).
+
+Testing
+-------
+
+This role has a small test setup that is created using [Molecule](https://github.com/ansible-community/molecule), libvirt (vagrant-libvirt) and QEMU/KVM. Please see my blog post [Testing Ansible roles with Molecule, libvirt (vagrant-libvirt) and QEMU/KVM](https://www.tauceti.blog/posts/testing-ansible-roles-with-molecule-libvirt-vagrant-qemu-kvm/) how to setup. The test configuration is [here](https://github.com/githubixx/ansible-role-traefik-kubernetes/tree/master/molecule/kvm).
+
+Afterwards molecule can be executed. The following command will do a basic setup and create a template of the resources (default action see above) that will be created:
+
+```bash
+molecule converge -s kvm
+```
+
+Installing `Traefik` and the required resources:
+
+```bash
+molecule converge -s kvm -- --extra-vars action=install
+```
+
+Upgrading `Traefik` or changing parameters:
+
+```bash
+molecule converge -s kvm -- --extra-vars action=upgrade
+```
+
+Deleting `Traefik` and its resources:
+
+```bash
+molecule converge -s kvm -- --extra-vars action=delete
+```
+
+This will setup a virtual machine (VM) and installs a minimal Kubernetes setup using `minikube`. That setup will be used to install `Traefik` by using this role.
+
+To clean up run
+
+```bash
+molecule destroy -s kvm
+```
 
 License
 -------
