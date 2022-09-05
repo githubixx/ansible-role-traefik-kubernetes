@@ -47,3 +47,7 @@ traefik_install_crds: false
 # doesn't have direct connection to this cluster or should be executed
 # elsewhere this variable can be changed accordingly.
 traefik_delegate_to: 127.0.0.1
+
+# Shows the "helm" command that was executed if a task uses Helm to
+# install, update/upgrade or deletes such a resource.
+traefik_helm_show_commands: false
