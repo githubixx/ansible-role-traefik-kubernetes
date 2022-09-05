@@ -21,12 +21,12 @@
         suffix: traefik_values
       delegate_to: "{{ traefik_delegate_to }}"
       run_once: true
-      register: traefik_values_tmp_file
+      register: traefik__values_tmp_file
 
     - name: Select values file for Helm template
       ansible.builtin.template:
         src: "{{ lookup('first_found', params) }}"
-        dest: "{{ traefik_values_tmp_file.path }}"
+        dest: "{{ traefik__values_tmp_file.path }}"
         mode: 0600
       delegate_to: "{{ traefik_delegate_to }}"
       run_once: true
@@ -49,7 +49,7 @@
         create_namespace: false
         update_repo_cache: true
         values_files:
-          - "{{ traefik_values_tmp_file.path }}"
+          - "{{ traefik__values_tmp_file.path }}"
       run_once: true
       delegate_to: "{{ traefik_delegate_to }}"
       register: traefik__helm_install_chart
@@ -63,19 +63,19 @@
 
     - name: Delete temporary file for Helm values
       ansible.builtin.file:
-        path: "{{ traefik_values_tmp_file.path }}"
+        path: "{{ traefik__values_tmp_file.path }}"
         state: absent
       run_once: true
       delegate_to: "{{ traefik_delegate_to }}"
       when:
-        - traefik_values_tmp_file.path is defined
+        - traefik__values_tmp_file.path is defined
 
   rescue:
     - name: Delete temporary file for Helm values
       ansible.builtin.file:
-        path: "{{ traefik_values_tmp_file.path }}"
+        path: "{{ traefik__values_tmp_file.path }}"
         state: absent
       run_once: true
       delegate_to: "{{ traefik_delegate_to }}"
       when:
-        - traefik_values_tmp_file.path is defined
+        - traefik__values_tmp_file.path is defined
