@@ -59,9 +59,15 @@
       delegate_to: "{{ traefik_delegate_to }}"
       when: traefik__values_tmp_file.path is defined
 
+    - name: Create directory to store template.yml
+      ansible.builtin.file:
+        dest: "{{ traefik_template_output_directory }}"
+        state: directory
+        mode: 0700
+
     - name: Write templates to file
       ansible.builtin.copy:
-        dest: "/tmp/template.yml"
+        dest: "{{ traefik_template_output_directory }}/template.yml"
         content: "{{ traefik__template.stdout }}"
         mode: 0644
 
