@@ -13,7 +13,10 @@
     var: traefik__helm_show_uninstall_release.command
   delegate_to: "{{ traefik_delegate_to }}"
   run_once: true
-  when: traefik_helm_show_commands
+  when:
+    - traefik__helm_show_uninstall_release is defined
+    - traefik__helm_show_uninstall_release.command is defined
+    - traefik_helm_show_commands
 
 - name: Remove repository via Helm
   kubernetes.core.helm_repository:
@@ -28,7 +31,10 @@
     var: traefik__helm_show_remove_repository.command
   delegate_to: "{{ traefik_delegate_to }}"
   run_once: true
-  when: traefik_helm_show_commands
+  when:
+    - traefik__helm_show_remove_repository is defined
+    - traefik__helm_show_remove_repository.command is defined
+    - traefik_helm_show_commands
 
 - name: Delete namespace
   kubernetes.core.k8s:
