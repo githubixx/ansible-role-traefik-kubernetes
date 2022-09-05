@@ -47,10 +47,19 @@
         chart_version: "{{ traefik_chart_version }}"
         release_namespace: "{{ traefik_namespace }}"
         create_namespace: false
+        update_repo_cache: true
         values_files:
           - "{{ traefik_values_tmp_file.path }}"
       run_once: true
       delegate_to: "{{ traefik_delegate_to }}"
+      register: traefik__helm_install_chart
+
+    - name: Install chart (helm command executed)
+      ansible.builtin.debug:
+        var: traefik__helm_show_install_chart.command
+      delegate_to: "{{ traefik_delegate_to }}"
+      run_once: true
+      when: traefik_helm_show_commands
 
     - name: Delete temporary file for Helm values
       ansible.builtin.file:
