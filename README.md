@@ -236,6 +236,12 @@ The default action is to just render the Kubernetes resources YAML file after re
 ansible-playbook --tags=role-traefik-kubernetes k8s.yml
 ```
 
+To render the template into a different directory use `traefik_template_output_directory` variable e.g.:
+
+```bash
+ansible-playbook --tags=role-traefik-kubernetes --extra-vars traefik_template_output_directory="/tmp/traefik" k8s.yml
+```
+
 If you want to see the `helm` commands and the parameters which were executed in the logs you can also specify `--extra-vars traefik_helm_show_commands=true`.
 
 One of the final tasks is called `TASK [githubixx.traefik_kubernetes : Write templates to file]`. This renders the template with the resources that will be created into the directory specified in `traefik_template_output_directory`. The file will be called `template.yml`. The directory/file will be placed on your local machine to be able to inspect it.
