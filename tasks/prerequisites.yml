@@ -23,7 +23,9 @@
     var: traefik__helm_repo_installed.command
   delegate_to: "{{ traefik_delegate_to }}"
   run_once: true
-  when: traefik_helm_show_commands
+  when:
+    - traefik__helm_repo_installed is defined
+    - traefik_helm_show_commands
 
 - name: Add Helm repository
   kubernetes.core.helm_repository:
@@ -39,4 +41,6 @@
     var: traefik__helm_add_repo.command
   delegate_to: "{{ traefik_delegate_to }}"
   run_once: true
-  when: traefik_helm_show_commands
+  when:
+    - traefik__helm_add_repo is defined
+    - traefik_helm_show_commands
