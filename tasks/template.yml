@@ -63,7 +63,7 @@
       ansible.builtin.file:
         dest: "{{ traefik_template_output_directory }}"
         state: directory
-        mode: 0700
+        mode: 0755
       run_once: true
       delegate_to: 127.0.0.1
 
