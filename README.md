@@ -325,6 +325,12 @@ molecule converge -s kvm -- --extra-vars action=delete
 
 This will setup a virtual machine (VM) and installs a minimal Kubernetes setup using `minikube`. That setup will be used to install `Traefik` by using this role.
 
+To run a few tests use
+
+```bash
+molecule verify -s kvm
+```
+
 To clean up run
 
 ```bash
