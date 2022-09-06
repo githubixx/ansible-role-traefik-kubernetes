@@ -1,0 +1,29 @@
+---
+# Copyright (C) 2022 Robert Wimmer
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: Verify setup
+  hosts: all
+  tasks:
+    - name: Fetch Traefik DaemonSet information
+      k8s_info:
+        api_version: v1
+        kind: DaemonSet
+        name: traefik
+        namespace: traefik
+      register: traefik__daemonset_info
+
+    - name: Print DaemonSet JSON blob
+      ansible.builtin.debug:
+        var: traefik__daemonset_info
+      when: ansible_verbosity > 1
+
+    - name: There should be a DaemonSet called traefik
+      ansible.builtin.assert:
+        that:
+          - traefik__daemonset_info.resources[0].metadata.name == "traefik"
+
+    - name: There should be at least one Traefik pod running
+      ansible.builtin.assert:
+        that:
+          - (traefik__daemonset_info.resources[0].status.numberReady | default(0) | int ) >= 1
