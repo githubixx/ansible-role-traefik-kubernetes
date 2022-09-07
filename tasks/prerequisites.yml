@@ -5,25 +5,45 @@
     api_version: v1
     kind: Namespace
     state: present
-  delegate_to: 127.0.0.1
+  delegate_to: "{{ traefik_delegate_to }}"
   run_once: true
 
 - name: Register if Helm repository is installed
-  command: helm search repo {{ traefik_chart_name }} -n {{ traefik_namespace }}
-  register: traefik_repo_installed
-  changed_when: false
-  delegate_to: 127.0.0.1
+  kubernetes.core.helm_info:
+    name: traefik
+    release_namespace: traefik
+    release_state:
+      - all
+  register: traefik__helm_repo_installed
+  delegate_to: "{{ traefik_delegate_to }}"
   run_once: true
+
+- name: Register if Helm repository is installed (helm command executed)
+  ansible.builtin.debug:
+    var: traefik__helm_repo_installed.command
+  delegate_to: "{{ traefik_delegate_to }}"
+  run_once: true
+  when:
+    - traefik__helm_repo_installed is defined
+    - traefik__helm_repo_installed.command is defined
+    - traefik_helm_show_commands
 
 - name: Add Helm repository
-  command: helm repo add {{ traefik_repo_name }} {{ traefik_chart_url }}
-  changed_when: false
-  delegate_to: 127.0.0.1
+  kubernetes.core.helm_repository:
+    name: "{{ traefik_repo_name }}"
+    repo_url: "{{ traefik_chart_url }}"
+  delegate_to: "{{ traefik_delegate_to }}"
   run_once: true
-  when: "traefik_repo_installed.stdout.find(traefik_chart_name) == -1"
+  when:
+    - traefik__helm_repo_installed.status is not defined
+  register: traefik__helm_add_repo
 
-- name: Update local Helm chart repository cache
-  command: helm repo update -n {{ traefik_namespace }}
-  changed_when: false
-  delegate_to: 127.0.0.1
+- name: Add Helm repository (helm command executed)
+  ansible.builtin.debug:
+    var: traefik__helm_add_repo.command
+  delegate_to: "{{ traefik_delegate_to }}"
   run_once: true
+  when:
+    - traefik__helm_add_repo is defined
+    - traefik__helm_add_repo.command is defined
+    - traefik_helm_show_commands

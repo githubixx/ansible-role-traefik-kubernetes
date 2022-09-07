@@ -10,23 +10,25 @@
         definition: "{{ lookup('file', item) | from_yaml }}"
       with_fileglob:
         - "crds/*.yaml"
+      delegate_to: "{{ traefik_delegate_to }}"
+      run_once: true
       when:
         - traefik_install_crds
 
     - name: Create temporary file for Helm values
-      tempfile:
+      ansible.builtin.tempfile:
         state: file
         suffix: traefik_values
-      delegate_to: 127.0.0.1
+      delegate_to: "{{ traefik_delegate_to }}"
       run_once: true
       register: traefik_values_tmp_file
 
     - name: Select values file for Helm template
-      template:
+      ansible.builtin.template:
         src: "{{ lookup('first_found', params) }}"
         dest: "{{ traefik_values_tmp_file.path }}"
         mode: 0600
-      delegate_to: 127.0.0.1
+      delegate_to: "{{ traefik_delegate_to }}"
       run_once: true
       vars:
         params:
@@ -38,39 +40,45 @@
             - "{{ traefik_chart_values_directory }}"
             - templates
 
-    - name: Upgrade chart
-      shell:
-        set -o errexit
-        set -o pipefail
-        set -o nounset
-
-        helm upgrade {{ traefik_release_name }} {{ traefik_chart_name }}
-        --namespace {{ traefik_namespace }}
-        --version {{ traefik_chart_version }}
-        --values {{ traefik_values_tmp_file.path }}
-
-        exit 0
+    - name: Upgrade Helm chart
+      kubernetes.core.helm:
+        name: "{{ traefik_release_name }}"
+        chart_ref: "{{ traefik_chart_name }}"
+        chart_version: "{{ traefik_chart_version }}"
+        release_namespace: "{{ traefik_namespace }}"
+        create_namespace: false
+        update_repo_cache: true
+        values_files:
+          - "{{ traefik_values_tmp_file.path }}"
       run_once: true
-      delegate_to: 127.0.0.1
-      register: traefik_template
-      args:
-        executable: "/bin/bash"
+      delegate_to: "{{ traefik_delegate_to }}"
+      register: traefik__helm_upgrade_chart
+
+    - name: Upgrade Helm chart (helm command executed)
+      ansible.builtin.debug:
+        var: traefik__helm_upgrade_chart.command
+      delegate_to: "{{ traefik_delegate_to }}"
+      run_once: true
+      when:
+        - traefik__helm_upgrade_chart is defined
+        - traefik__helm_upgrade_chart.command is defined
+        - traefik_helm_show_commands
 
     - name: Delete temporary file for Helm values
-      file:
+      ansible.builtin.file:
         path: "{{ traefik_values_tmp_file.path }}"
         state: absent
       run_once: true
-      delegate_to: 127.0.0.1
+      delegate_to: "{{ traefik_delegate_to }}"
       when:
         - traefik_values_tmp_file.path is defined
 
   rescue:
     - name: Delete temporary file for Helm values
-      file:
+      ansible.builtin.file:
         path: "{{ traefik_values_tmp_file.path }}"
         state: absent
       run_once: true
-      delegate_to: 127.0.0.1
+      delegate_to: "{{ traefik_delegate_to }}"
       when:
         - traefik_values_tmp_file.path is defined

@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.0.0+10.24.2
+
+- update Helm chart to `v10.24.2`
+- use Traefik `v2.8.4`
+- introduce `traefik_delegate_to` variable. Previously this was hard coded to `127.0.0.1` and it's also the default of this variable.
+- introduce `traefik_helm_show_commands` variable (see README for more information)
+- introduce `traefik_template_output_directory` variable (see README for more information)
+- introduce `Molecule` tests
+- don't use `shell` module anymore to execute `helm` command. Now `kubernetes.core.helm*` modules are used.
+- use two underscores for internal variables
+- ansible-lint: fix various issues like using FQDN Ansible module names now
+- add `requirements.yml`
+- add `collections.yml`
+
 ## 2.8.3+10.24.1
 
 - update Helm chart to `v10.24.1`

@@ -1,39 +1,46 @@
 ---
 - name: Uninstall release via Helm
-  shell:  # noqa 301
-    set -o errexit
-    set -o pipefail
-    set -o nounset
-
-    helm uninstall {{ traefik_release_name }} --namespace {{ traefik_namespace }}
-
-    exit 0
+  kubernetes.core.helm:
+    name: "{{ traefik_release_name }}"
+    release_namespace: "{{ traefik_namespace }}"
+    state: absent
   run_once: true
-  delegate_to: 127.0.0.1
-  changed_when: false
-  args:
-    executable: "/bin/bash"
+  delegate_to: "{{ traefik_delegate_to }}"
+  register: traefik__helm_show_uninstall_release
+
+- name: Uninstall release via Helm (helm command executed)
+  ansible.builtin.debug:
+    var: traefik__helm_show_uninstall_release.command
+  delegate_to: "{{ traefik_delegate_to }}"
+  run_once: true
+  when:
+    - traefik__helm_show_uninstall_release is defined
+    - traefik__helm_show_uninstall_release.command is defined
+    - traefik_helm_show_commands
 
 - name: Remove repository via Helm
-  shell:  # noqa 301
-    set -o errexit
-    set -o pipefail
-    set -o nounset
-
-    helm repo remove {{ traefik_repo_name }}
-
-    exit 0
+  kubernetes.core.helm_repository:
+    name: "{{ traefik_repo_name }}"
+    repo_state: absent
   run_once: true
-  delegate_to: 127.0.0.1
-  changed_when: false
-  args:
-    executable: "/bin/bash"
+  delegate_to: "{{ traefik_delegate_to }}"
+  register: traefik__helm_show_remove_repository
+
+- name: Remove repository via Helm (helm command executed)
+  ansible.builtin.debug:
+    var: traefik__helm_show_remove_repository.command
+  delegate_to: "{{ traefik_delegate_to }}"
+  run_once: true
+  when:
+    - traefik__helm_show_remove_repository is defined
+    - traefik__helm_show_remove_repository.command is defined
+    - traefik_helm_show_commands
 
 - name: Delete namespace
-  k8s:
+  kubernetes.core.k8s:
     name: "{{ traefik_namespace }}"
     api_version: v1
     kind: Namespace
     state: absent
-  delegate_to: 127.0.0.1
+  delegate_to: "{{ traefik_delegate_to }}"
   run_once: true
