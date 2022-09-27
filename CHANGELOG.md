@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.1+10.24.4
+
+- fix yamllint issues (remove blank lines in CRD files)
+
 ## 3.1.0+10.24.4
 
 - update Helm chart to `v10.24.4`
