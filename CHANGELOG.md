@@ -4,6 +4,7 @@
 
 - update Helm chart to `v10.24.4`
 - use Traefik `v2.8.7`
+- add Github release action to push new release to Ansible Galaxy
 
 ## 3.0.0+10.24.2
 
