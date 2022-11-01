@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.0.0+16.2.0
+
+- update Helm chart to `v16.2.0`
+- use Traefik `v2.9.4`
+
 ## 3.1.1+10.24.4
 
 - fix yamllint issues (remove blank lines in CRD files)
