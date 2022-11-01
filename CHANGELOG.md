@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.0.1+16.2.0
+
+- fix yamllint issues (remove blank lines in CRD files)
+- add `.yamllint`
+
 ## 4.0.0+16.2.0
 
 - update Helm chart to `v16.2.0`
