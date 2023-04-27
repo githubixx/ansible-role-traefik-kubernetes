@@ -44,7 +44,7 @@ Role Variables
 
 ```yaml
 # Helm chart version
-traefik_chart_version: "16.2.0"
+traefik_chart_version: "23.0.0"
 
 # Helm release name
 traefik_release_name: "traefik"
