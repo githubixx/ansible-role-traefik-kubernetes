@@ -113,7 +113,7 @@ The first thing to do is to check `templates/traefik_values_default.yml.j2`. Thi
 # https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
 
 image:
-  name: traefik
+  repository: traefik
   tag: "2.9.4"
   pullPolicy: IfNotPresent
 
