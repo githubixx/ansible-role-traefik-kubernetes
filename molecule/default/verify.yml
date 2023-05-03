@@ -1,9 +1,9 @@
 ---
-# Copyright (C) 2022 Robert Wimmer
+# Copyright (C) 2023 Robert Wimmer
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 - name: Verify setup
-  hosts: all
+  hosts: test-assets
   tasks:
     - name: Fetch Traefik DaemonSet information
       k8s_info:
@@ -26,4 +26,16 @@
     - name: There should be at least one Traefik pod running
       ansible.builtin.assert:
         that:
-          - (traefik__daemonset_info.resources[0].status.numberReady | default(0) | int ) >= 1
+          - (traefik__daemonset_info.resources[0].status.numberReady | default(0) | int) >= 1
+
+    - name: Get homepage from Traefik
+      ansible.builtin.get_url:
+        url: "http://10.10.10.100"
+        dest: "/dev/null"
+      register: traefik__check_url
+      ignore_errors: true
+
+    - name: Request to Traefik should return HTTP 404
+      ansible.builtin.assert:
+        that:
+          - (traefik__check_url.status_code | default(999) | int) == 404
