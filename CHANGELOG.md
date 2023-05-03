@@ -1,5 +1,33 @@
 # Changelog
 
+## 5.0.0+23.0.1
+
+**Important note:** This release updates Traefik Helm chart from version `16.2.0` to `23.0.1`. Please read the following release notes carefully if you upgrade as it contains breaking changes esp. from chart version `16.x` to `17.x`:
+
+- [Upgrading from 16.x to 17.x](https://github.com/traefik/traefik-helm-chart#upgrading-from-16x-to-17x)
+- [Upgrading from 17.x to 18.x](https://github.com/traefik/traefik-helm-chart#upgrading-from-17x-to-18x)
+
+TBH: If you can afford a small downtime I'd recommend to delete the old setup and roll out a new one. Or you do what is mentioned in the upgrade document: `You may also upgrade by deploying another Traefik to a different namespace and removing after your first Traefik.`. Personally I'd stay away from setting `instanceLabelOverride`. Sooner or later it will come back to you ;-)
+
+Additionally also new [CRDs](https://github.com/traefik/traefik/pull/9765) were introduced with Traefik v2.10. That makes upgrading even more "fun". For more information see [Traefik Migration Documentation - v2.10](https://doc.traefik.io/traefik/v2.10/migration/v2/#v210). This role handles the required CRD (custom resource definition) updates mentioned in the upgrade documentation. Also the RBAC update mentioned there is handled by the Traefik Helm chart itself.
+
+From Helm chart version `18.x` all changes of the chart a documented in the [releases page](https://github.com/traefik/traefik-helm-chart/releases). For the changelog of Traefik see [releases page](https://github.com/traefik/traefik/releases).
+
+CRDs API Group `traefik.containo.us` is deprecated, and its support will end starting with Traefik `v3`. Please use the API Group `traefik.io` instead.
+
+CRDs API Version `traefik.io/v1alpha1` will not be supported in Traefik `v3` itself. However, an automatic migration path to the next version will be available.
+
+Helm chart version >= `23.0.0` requires Kubernetes >= `1.22`.
+
+Besides that:
+
+- update Helm chart to version `23.0.1`
+- update Traefik from version `2.9.4` to `2.10.1`
+- `templates/traefik_values_default.yml.j2`: `image.name` was renamed to `image.repository` (see [v22.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v22.0.0))
+- `templates/traefik_values_default.yml.j2`: introduce `image.registry`
+- update Traefik CRDs
+- refactor Molecule test
+
 ## 4.0.1+16.2.0
 
 - fix yamllint issues (remove blank lines in CRD files)
