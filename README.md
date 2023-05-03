@@ -44,7 +44,7 @@ Role Variables
 
 ```yaml
 # Helm chart version
-traefik_chart_version: "23.0.0"
+traefik_chart_version: "23.0.1"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -299,42 +299,42 @@ Testing
 
 This role has a small test setup that is created using [Molecule](https://github.com/ansible-community/molecule), libvirt (vagrant-libvirt) and QEMU/KVM. Please see my blog post [Testing Ansible roles with Molecule, libvirt (vagrant-libvirt) and QEMU/KVM](https://www.tauceti.blog/posts/testing-ansible-roles-with-molecule-libvirt-vagrant-qemu-kvm/) how to setup. The test configuration is [here](https://github.com/githubixx/ansible-role-traefik-kubernetes/tree/master/molecule/kvm).
 
-Afterwards molecule can be executed. The following command will do a basic setup and create a template of the resources (default action see above) that will be created:
+Afterwards molecule can be executed. Molecule will setup a few VMs with a complete Kubernetes cluster which makes it possible to test the all the Traefik functionality.
+
+The following command will do a basic setup and create a template of the resources (default action see above) that will be created:
 
 ```bash
-molecule converge -s kvm
+molecule converge
 ```
 
 Installing `Traefik` and the required resources:
 
 ```bash
-molecule converge -s kvm -- --extra-vars action=install
+molecule converge -- --extra-vars action=install
 ```
 
 Upgrading `Traefik` or changing parameters:
 
 ```bash
-molecule converge -s kvm -- --extra-vars action=upgrade
+molecule converge -- --extra-vars action=upgrade
 ```
 
 Deleting `Traefik` and its resources:
 
 ```bash
-molecule converge -s kvm -- --extra-vars action=delete
+molecule converge -- --extra-vars action=delete
 ```
-
-This will setup a virtual machine (VM) and installs a minimal Kubernetes setup using `minikube`. That setup will be used to install `Traefik` by using this role.
 
 To run a few tests use
 
 ```bash
-molecule verify -s kvm
+molecule verify
 ```
 
 To clean up run
 
 ```bash
-molecule destroy -s kvm
+molecule destroy
 ```
 
 License
