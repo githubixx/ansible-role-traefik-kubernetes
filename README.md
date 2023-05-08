@@ -76,14 +76,23 @@ traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"
 # https://github.com/traefik/traefik-helm-chart/tree/master/traefik/crds
 # The following CRDs will be installed:
 #   - ingressroutes.traefik.containo.us
+#   - ingressroutes.traefik.io
 #   - ingressroutetcps.traefik.containo.us
+#   - ingressroutetcps.traefik.io
 #   - ingressrouteudps.traefik.containo.us
+#   - ingressrouteudps.traefik.io
 #   - middlewares.traefik.containo.us
+#   - middlewares.traefik.io
 #   - middlewaretcps.traefik.containo.us
+#   - middlewaretcps.traefik.io
 #   - serverstransports.traefik.containo.us
+#   - serverstransports.traefik.io
 #   - tlsoptions.traefik.containo.us
+#   - tlsoptions.traefik.io
 #   - tlsstores.traefik.containo.us
+#   - tlsstores.traefik.io
 #   - traefikservices.traefik.containo.us
+#   - traefikservices.traefik.io
 traefik_install_crds: false
 
 # By default all tasks that needs to communicate with the Kubernetes
