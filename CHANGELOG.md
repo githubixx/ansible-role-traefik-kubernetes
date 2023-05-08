@@ -11,7 +11,7 @@ TBH: If you can afford a small downtime I'd recommend to delete the old setup an
 
 Additionally also new [CRDs](https://github.com/traefik/traefik/pull/9765) were introduced with Traefik v2.10. That makes upgrading even more "fun". For more information see [Traefik Migration Documentation - v2.10](https://doc.traefik.io/traefik/v2.10/migration/v2/#v210). This role handles the required CRD (custom resource definition) updates mentioned in the upgrade documentation. Also the RBAC update mentioned there is handled by the Traefik Helm chart itself.
 
-From Helm chart version `18.x` all changes of the chart a documented in the [releases page](https://github.com/traefik/traefik-helm-chart/releases). For the changelog of Traefik see [releases page](https://github.com/traefik/traefik/releases).
+From Helm chart version `18.x` all changes of the chart are documented in the [releases page](https://github.com/traefik/traefik-helm-chart/releases). For the changelog of Traefik see [releases page](https://github.com/traefik/traefik/releases).
 
 CRDs API Group `traefik.containo.us` is deprecated, and its support will end starting with Traefik `v3`. Please use the API Group `traefik.io` instead.
 
