@@ -17,7 +17,7 @@ For further information about the Helm chart settings see below.
 Versions
 --------
 
-I tag every release and try to stay with [semantic versioning](http://semver.org). If you want to use the role I recommend to checkout the latest tag. The master branch is basically development while the tags mark stable releases. But in general I try to keep master in good shape too. A tag `4.0.0+16.2.0` means this is release `4.0.0` of this role and it uses Helm chart version `16.2.0` (the `Traefik` version used is specified in the values file [see below]). If the role itself changes `X.Y.Z` before `+` will increase. If the Traefik chart version changes `X.Y.Z` after `+` will increase too. This allows to tag bugfixes and new major versions of the role while it's still developed for a specific Traefik release.
+I tag every release and try to stay with [semantic versioning](http://semver.org). If you want to use the role I recommend to checkout the latest tag. The master branch is basically development while the tags mark stable releases. But in general I try to keep master in good shape too. A tag `5.0.0+23.0.1` means this is release `5.0.0` of this role and it uses Helm chart version `23.0.1` (the `Traefik` version used is specified in the values file [see below]). If the role itself changes `X.Y.Z` before `+` will increase. If the Traefik chart version changes `X.Y.Z` after `+` will increase too. This allows to tag bugfixes and new major versions of the role while it's still developed for a specific Traefik release.
 
 Requirements
 ------------
@@ -44,7 +44,7 @@ Role Variables
 
 ```yaml
 # Helm chart version
-traefik_chart_version: "16.2.0"
+traefik_chart_version: "23.0.1"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -76,14 +76,23 @@ traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"
 # https://github.com/traefik/traefik-helm-chart/tree/master/traefik/crds
 # The following CRDs will be installed:
 #   - ingressroutes.traefik.containo.us
+#   - ingressroutes.traefik.io
 #   - ingressroutetcps.traefik.containo.us
+#   - ingressroutetcps.traefik.io
 #   - ingressrouteudps.traefik.containo.us
+#   - ingressrouteudps.traefik.io
 #   - middlewares.traefik.containo.us
+#   - middlewares.traefik.io
 #   - middlewaretcps.traefik.containo.us
+#   - middlewaretcps.traefik.io
 #   - serverstransports.traefik.containo.us
+#   - serverstransports.traefik.io
 #   - tlsoptions.traefik.containo.us
+#   - tlsoptions.traefik.io
 #   - tlsstores.traefik.containo.us
+#   - tlsstores.traefik.io
 #   - traefikservices.traefik.containo.us
+#   - traefikservices.traefik.io
 traefik_install_crds: false
 
 # By default all tasks that needs to communicate with the Kubernetes
@@ -113,8 +122,8 @@ The first thing to do is to check `templates/traefik_values_default.yml.j2`. Thi
 # https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
 
 image:
-  name: traefik
-  tag: "2.9.4"
+  repository: traefik
+  tag: "2.10.1"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
@@ -299,42 +308,42 @@ Testing
 
 This role has a small test setup that is created using [Molecule](https://github.com/ansible-community/molecule), libvirt (vagrant-libvirt) and QEMU/KVM. Please see my blog post [Testing Ansible roles with Molecule, libvirt (vagrant-libvirt) and QEMU/KVM](https://www.tauceti.blog/posts/testing-ansible-roles-with-molecule-libvirt-vagrant-qemu-kvm/) how to setup. The test configuration is [here](https://github.com/githubixx/ansible-role-traefik-kubernetes/tree/master/molecule/kvm).
 
-Afterwards molecule can be executed. The following command will do a basic setup and create a template of the resources (default action see above) that will be created:
+Afterwards molecule can be executed. Molecule will setup a few VMs with a complete Kubernetes cluster which makes it possible to test the all the Traefik functionality.
+
+The following command will do a basic setup and create a template of the resources (default action see above) that will be created:
 
 ```bash
-molecule converge -s kvm
+molecule converge
 ```
 
 Installing `Traefik` and the required resources:
 
 ```bash
-molecule converge -s kvm -- --extra-vars action=install
+molecule converge -- --extra-vars action=install
 ```
 
 Upgrading `Traefik` or changing parameters:
 
 ```bash
-molecule converge -s kvm -- --extra-vars action=upgrade
+molecule converge -- --extra-vars action=upgrade
 ```
 
 Deleting `Traefik` and its resources:
 
 ```bash
-molecule converge -s kvm -- --extra-vars action=delete
+molecule converge -- --extra-vars action=delete
 ```
-
-This will setup a virtual machine (VM) and installs a minimal Kubernetes setup using `minikube`. That setup will be used to install `Traefik` by using this role.
 
 To run a few tests use
 
 ```bash
-molecule verify -s kvm
+molecule verify
 ```
 
 To clean up run
 
 ```bash
-molecule destroy -s kvm
+molecule destroy
 ```
 
 License

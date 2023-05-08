@@ -1,0 +1,23 @@
+---
+# Copyright (C) 2023 Robert Wimmer
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: Setup Traefik
+  hosts: all
+  tasks:
+    - name: Include Traefik role
+      ansible.builtin.include_role:
+        name: githubixx.traefik_kubernetes
+      vars:
+        #
+        # Install
+        # action: "install"
+        #
+        # Upgrade
+        # action: "upgrade"
+        #
+        # Render Helm chart only
+        action: "template"
+        #
+        # Delete all resources
+        # action: "delete"
