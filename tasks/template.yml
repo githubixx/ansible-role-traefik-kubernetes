@@ -1,6 +1,7 @@
 ---
 - name: Include prerequisites
-  include_tasks: "tasks/prerequisites.yml"
+  ansible.builtin.include_tasks:
+    file: "tasks/prerequisites.yml"
 
 - name: Render values
   block:

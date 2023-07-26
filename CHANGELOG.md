@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.1.0+23.1.0
+
+- update Helm chart to version `23.1.0`
+- update Traefik from version `2.10.1` to `2.10.4`
+- `.yamllint`: ignore `files/crds/` directory
+- fix ansible-lint issues
+
 ## 5.0.0+23.0.1
 
 **Important note:** This release updates Traefik Helm chart from version `16.2.0` to `23.0.1`. Please read the following release notes carefully if you upgrade as it contains breaking changes esp. from chart version `16.x` to `17.x`:

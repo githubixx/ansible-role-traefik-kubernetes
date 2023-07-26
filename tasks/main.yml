@@ -41,4 +41,4 @@
     - '"delete" in action'
 
 - name: Include tasks to execute requested action
-  ansible.builtin.include_tasks: "tasks/{{ deploy_action|lower }}.yml"
+  ansible.builtin.include_tasks: "tasks/{{ deploy_action | lower }}.yml"

@@ -1,6 +1,9 @@
 ---
 extends: default
 
+ignore: |
+  files/crds/
+
 rules:
   line-length:
     max: 300
