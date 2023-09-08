@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.1.1+23.1.0
+
+- rename `githubixx.kubernetes-ca` to `githubixx.kubernetes_ca`
+- rename `githubixx.kubernetes-controller` to `githubixx.kubernetes_controller`
+- rename `githubixx.kubernetes-worker` to `githubixx.kubernetes_worker`
+
 ## 5.1.0+23.1.0
 
 - update Helm chart to version `23.1.0`
