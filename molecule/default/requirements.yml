@@ -7,10 +7,10 @@ roles:
   - githubixx.ansible_role_wireguard
   - githubixx.harden-linux
   - githubixx.cfssl
-  - githubixx.kubernetes-ca
+  - githubixx.kubernetes_ca
   - githubixx.etcd
   - githubixx.kubectl
-  - githubixx.kubernetes-controller
-  - githubixx.kubernetes-worker
+  - githubixx.kubernetes_controller
+  - githubixx.kubernetes_worker
   - githubixx.containerd
   - githubixx.cilium_kubernetes

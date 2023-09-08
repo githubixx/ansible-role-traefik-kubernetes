@@ -45,7 +45,7 @@
 
     - name: Generate etcd and K8s TLS certificates
       include_role:
-        name: githubixx.kubernetes-ca
+        name: githubixx.kubernetes_ca
 
     - name: Copy certificate files from assets to local host
       ansible.posix.synchronize:
@@ -109,7 +109,7 @@
   tasks:
     - name: Install Kubernetes control plane
       ansible.builtin.include_role:
-        name: githubixx.kubernetes-controller
+        name: githubixx.kubernetes_controller
 
 - name: Setup Kubernetes tooling
   hosts: k8s_assets
@@ -149,7 +149,7 @@
 
     - name: Setup Kubernetes worker
       ansible.builtin.include_role:
-        name: githubixx.kubernetes-worker
+        name: githubixx.kubernetes_worker
 
     - name: Include Cilium role
       ansible.builtin.include_role:
