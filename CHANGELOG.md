@@ -2,6 +2,10 @@
 
 ## 5.1.2+23.1.0
 
+- update Traefik from version `2.10.4` to `2.10.7`
+
+## 5.1.2+23.1.0
+
 - rename `githubixx.harden-linux` to `githubixx.harden_linux`
 
 ## 5.1.1+23.1.0
