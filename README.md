@@ -44,7 +44,7 @@ Role Variables
 
 ```yaml
 # Helm chart version
-traefik_chart_version: "23.1.0"
+traefik_chart_version: "23.2.0"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -123,7 +123,7 @@ The first thing to do is to check `templates/traefik_values_default.yml.j2`. Thi
 
 image:
   repository: traefik
-  tag: "2.10.7"
+  tag: "2.11.0"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
