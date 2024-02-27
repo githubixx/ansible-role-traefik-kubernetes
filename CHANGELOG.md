@@ -1,6 +1,13 @@
 # Changelog
 
-## 5.1.2+23.1.0
+## 6.0.0+23.2.0
+
+- **POTENTIALLY BREAKING**: add `updateStrategy` to `templates/traefik_values_default.yml.j2`. This differs from the default [values.yaml](https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml). Setting `maxUnavailable: 1` and removing `maxSurge: 1` to make rolling update work with the default `DaemonSet`
+- update Helm chart to version `23.2.0`
+- update Traefik from version `2.10.7` to `2.11.0`
+- update Github workflow
+
+## 5.1.3+23.1.0
 
 - update Traefik from version `2.10.4` to `2.10.7`
 

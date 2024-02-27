@@ -4,7 +4,7 @@
 image:
   registry: docker.io
   repository: traefik
-  tag: "2.10.7"
+  tag: "2.11.0"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
@@ -115,3 +115,8 @@ resources:
     cpu: "300m"
     memory: "150Mi"
 
+# Updates the Pods in the DaemonSet one by one when the DaemonSet was upgraded
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1

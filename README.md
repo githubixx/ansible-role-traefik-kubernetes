@@ -44,7 +44,7 @@ Role Variables
 
 ```yaml
 # Helm chart version
-traefik_chart_version: "23.1.0"
+traefik_chart_version: "23.2.0"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -123,7 +123,7 @@ The first thing to do is to check `templates/traefik_values_default.yml.j2`. Thi
 
 image:
   repository: traefik
-  tag: "2.10.7"
+  tag: "2.11.0"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
@@ -233,6 +233,12 @@ resources:
   limits:
     cpu: "300m"
     memory: "150Mi"
+
+# Updates the Pods in the DaemonSet one by one when the DaemonSet was upgraded
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
 ```
 
 But nothing is made in stone ;-) To use your own values just create a file called `values.yml.j2` or `values.yaml.j2` and put it into the directory specified in `traefik_chart_values_directory` (which is `$HOME/traefik/helm` by default). Then this role will use that file to render the Helm values. You can use `templates/traefik_values_default.yml.j2` as a template or just start from scratch. As mentioned above you can modify all settings for the Helm chart that are different to the default ones which are located [here](https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml).
