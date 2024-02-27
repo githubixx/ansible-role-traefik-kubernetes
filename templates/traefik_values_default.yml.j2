@@ -115,3 +115,8 @@ resources:
     cpu: "300m"
     memory: "150Mi"
 
+# Updates the Pods in the DaemonSet one by one when the DaemonSet was upgraded
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
