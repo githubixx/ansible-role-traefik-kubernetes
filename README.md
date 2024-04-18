@@ -123,7 +123,7 @@ The first thing to do is to check `templates/traefik_values_default.yml.j2`. Thi
 
 image:
   repository: traefik
-  tag: "2.11.0"
+  tag: "2.11.2"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
