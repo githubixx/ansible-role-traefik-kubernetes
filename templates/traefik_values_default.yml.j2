@@ -55,10 +55,15 @@ ports:
   # To access the dashboard you can use "kubectl port-forward" e.g.:
   # kubectl -n traefik port-forward $(kubectl get pods --selector "app.kubernetes.io/name=traefik" --output=name -A | head -1) 9000:9000
   # Opening http://localhost:9000/dashboard/ should show the dashboard.
+  #
+  # NOTE: You SHOULD NOT expose the "traefik" port on production deployments.
+  # If you want to access it from outside your cluster,
+  # use `kubectl port-forward` or create a secure ingres
   traefik:
     port: 9000
-    expose: false
     protocol: TCP
+    expose:
+      default: false
   # Unsecured incoming HTTP traffic. If you uncomment "redirectTo: websecure"
   # all traffic that arrives at this port will be redirected to "websecure"
   # entry point which means to the entry point that handles secure HTTPS traffic.
@@ -73,14 +78,16 @@ ports:
   web:
     port: 30080
     hostPort: 80
-    expose: true
+    expose:
+      default: true
     protocol: TCP
     # redirectTo: websecure
   # Entry point for HTTPS traffic.
   websecure:
     port: 30443
     hostPort: 443
-    expose: true
+    expose:
+      default: true
     protocol: TCP
     tls:
       enabled: true
