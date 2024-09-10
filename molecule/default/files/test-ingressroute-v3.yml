@@ -1,0 +1,19 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: test-v3
+  namespace: test
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: HostRegexp(`^.*\.?example-v3\.com$`)
+      syntax: v3
+      services:
+        - kind: Service
+          name: test
+          namespace: test
+          passHostHeader: true
+          port: 80

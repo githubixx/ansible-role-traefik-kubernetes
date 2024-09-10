@@ -1,5 +1,5 @@
 ---
-# Copyright (C) 2023 Robert Wimmer
+# Copyright (C) 2024 Robert Wimmer
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 dependency:
@@ -14,7 +14,7 @@ driver:
 platforms:
   - name: test-assets
     box: alvistack/ubuntu-24.04
-    memory: 1024
+    memory: 2048
     cpus: 2
     groups:
       - vpn
@@ -31,9 +31,9 @@ platforms:
     cpus: 2
     groups:
       - vpn
+      - haproxy
       - k8s_controller
       - k8s_worker
-      - k8s_etcd
       - k8s
     interfaces:
       - auto_config: true
@@ -46,9 +46,9 @@ platforms:
     cpus: 2
     groups:
       - vpn
+      - haproxy
       - k8s_controller
       - k8s_worker
-      - k8s_etcd
       - k8s
     interfaces:
       - auto_config: true
@@ -61,54 +61,79 @@ platforms:
     cpus: 2
     groups:
       - vpn
+      - haproxy
       - k8s_controller
       - k8s_worker
-      - k8s_etcd
       - k8s
     interfaces:
       - auto_config: true
         network_name: private_network
         type: static
         ip: 172.16.10.30
+  - name: test-etcd1
+    box: alvistack/ubuntu-24.04
+    memory: 2048
+    cpus: 2
+    groups:
+      - vpn
+      - k8s_etcd
+    interfaces:
+      - auto_config: true
+        network_name: private_network
+        type: static
+        ip: 172.16.10.100
+  - name: test-etcd2
+    box: alvistack/ubuntu-24.04
+    memory: 2048
+    cpus: 2
+    groups:
+      - vpn
+      - k8s_etcd
+    interfaces:
+      - auto_config: true
+        network_name: private_network
+        type: static
+        ip: 172.16.10.110
+  - name: test-etcd3
+    box: alvistack/ubuntu-24.04
+    memory: 2048
+    cpus: 2
+    groups:
+      - vpn
+      - k8s_etcd
+    interfaces:
+      - auto_config: true
+        network_name: private_network
+        type: static
+        ip: 172.16.10.120
   - name: test-worker1
     box: alvistack/ubuntu-24.04
     memory: 2048
     cpus: 2
     groups:
       - vpn
+      - haproxy
       - k8s_worker
       - k8s
     interfaces:
       - auto_config: true
         network_name: private_network
         type: static
-        ip: 172.16.10.100
+        ip: 172.16.10.200
   - name: test-worker2
     box: alvistack/ubuntu-24.04
     memory: 2048
     cpus: 2
     groups:
       - vpn
+      - haproxy
       - k8s_worker
       - k8s
     interfaces:
       - auto_config: true
         network_name: private_network
         type: static
-        ip: 172.16.10.110
-  - name: test-worker3
-    box: alvistack/ubuntu-24.04
-    memory: 2048
-    cpus: 2
-    groups:
-      - vpn
-      - k8s_worker
-      - k8s
-    interfaces:
-      - auto_config: true
-        network_name: private_network
-        type: static
-        ip: 172.16.10.120
+        ip: 172.16.10.210
 
 provisioner:
   name: ansible
