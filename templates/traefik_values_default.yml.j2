@@ -6,9 +6,9 @@
 # makes the v2 format the default rule matchers syntax. If you do a fresh
 # install of Traefik this setting isn't needed. For more information see:
 # https://doc.traefik.io/traefik/migration/v2-to-v3/
-{% if traefik_default_path_matcher_syntax is defined and traefik_default_path_matcher_syntax == "v2" %}
+{% if traefik_default_path_matcher_syntax is defined %}
 core:
-  defaultRuleSyntax: v2
+  defaultRuleSyntax: {{ traefik_default_path_matcher_syntax }}
 {% endif %}
 
 image:
