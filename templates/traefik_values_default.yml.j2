@@ -6,8 +6,10 @@
 # makes the v2 format the default rule matchers syntax. If you do a fresh
 # install of Traefik this setting isn't needed. For more information see:
 # https://doc.traefik.io/traefik/migration/v2-to-v3/
-# core:
-#   defaultRuleSyntax: v2
+{% if traefik_default_path_matcher_syntax is defined and traefik_default_path_matcher_syntax == "v2" %}
+core:
+  defaultRuleSyntax: v2
+{% endif %}
 
 image:
   registry: docker.io
@@ -58,7 +60,7 @@ ports:
   #
   # NOTE: You SHOULD NOT expose the "traefik" port on production deployments.
   # If you want to access it from outside your cluster,
-  # use `kubectl port-forward` or create a secure ingres
+  # use `kubectl port-forward` or create a secure ingress.
   traefik:
     port: 9000
     protocol: TCP
@@ -91,6 +93,40 @@ ports:
     protocol: TCP
     tls:
       enabled: true
+
+# When providers.kubernetesGateway.enabled, deploy a default gateway
+gateway:
+  enabled: false
+  listeners:
+    web:
+      # Port is the network port. Multiple listeners may use the same port,
+      # subject to the Listener compatibility rules.
+      # The port must match a port declared in ports section.
+      port: 30080
+      # Specify expected protocol on this listener.
+      # See [ProtocolType](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.ProtocolType)
+      protocol: HTTP
+    #websecure:
+      # Port is the network port. Multiple listeners may use the same port,
+      # subject to the Listener compatibility rules.
+      # The port must match a port declared in ports section
+      #port: 30443
+      # Optional hostname.
+      # See [Hostname](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.Hostname)
+      #hostname:
+      # Specify expected protocol on this listener.
+      # See [ProtocolType](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.ProtocolType)
+      #protocol: HTTPS
+      # Routes are restricted to namespace of the gateway
+      # [by default](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.FromNamespaces)
+      #namespacePolicy
+      # Add certificates for TLS or HTTPS protocols. This value must be specified
+      # if "gateway.enabled: true" and "gateway.listeners.websecure" is defined!
+      # See [GatewayTLSConfig](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io%2fv1.GatewayTLSConfig)
+      #certificateRefs:
+      # TLS behavior for the TLS session initiated by the client.
+      # See [TLSModeType](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.TLSModeType).
+      #mode:
 
 # These security settings are basically best practice to limit attack surface
 # as good as possible.
@@ -137,6 +173,7 @@ updateStrategy:
   type: RollingUpdate
   rollingUpdate:
     maxUnavailable: 1
+    maxSurge: 0
 
 providers:
   kubernetesCRD:
@@ -147,13 +184,9 @@ providers:
     enabled: true
   kubernetesGateway:
     # Enable Traefik "Gateway" provider for Gateway API
-    enabled: true
+    enabled: false
 
 # Create a default IngressClass for Traefik
 ingressClass:
   enabled: true
   isDefaultClass: true
-
-# When providers.kubernetesGateway.enabled, deploy a default gateway
-gateway:
-  enabled: true

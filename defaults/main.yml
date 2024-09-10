@@ -29,7 +29,7 @@ traefik_namespace: "traefik"
 # "templates/traefik_values_default.yml.j2" file. If you use your
 # own values file you can set this value there. It sets "core.defaultRuleSyntax"
 # accordingly.
-traefik_default_path_matcher_syntax: "v2"
+traefik_default_path_matcher_syntax: "v3"
 
 # Directory that contains Helm chart values file. If you specify this
 # variable Ansible will try to locate a file called "values.yml.j2" or
