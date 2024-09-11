@@ -72,7 +72,7 @@
     - name: Delete test IngressRoute - Traefik v2 syntax
       kubernetes.core.k8s:
         name: "test-v2"
-        api_version: "v1alpha1"
+        api_version: "traefik.containo.us/v1alpha1"
         kind: "IngressRoute"
         namespace: "test"
         state: absent
