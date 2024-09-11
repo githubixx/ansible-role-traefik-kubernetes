@@ -1,5 +1,5 @@
 ---
-# Copyright (C) 2023 Robert Wimmer
+# Copyright (C) 2024 Robert Wimmer
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 apiVersion: v1
@@ -18,11 +18,8 @@ data:
           pods insecure
           fallthrough in-addr.arpa ip6.arpa
         }
-        forward . tls://9.9.9.9 {
-           tls_servername dns.quad9.net
-           health_check 10s
-        }
         prometheus :9153
+        forward . 1.1.1.1 9.9.9.9
         cache 30
         loop
         reload
