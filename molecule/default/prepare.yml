@@ -1,5 +1,5 @@
 ---
-# Copyright (C) 2023 Robert Wimmer
+# Copyright (C) 2024 Robert Wimmer
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 - name: Update cache
@@ -9,9 +9,11 @@
   gather_facts: true
   tasks:
     - name: Update APT package cache
-      apt:
+      ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 3600
+    - name: Reboot for kernel updates
+      ansible.builtin.reboot:
 
 - name: Harden hosts
   hosts: all
@@ -20,7 +22,7 @@
   gather_facts: true
   tasks:
     - name: Setup harden_linux role
-      include_role:
+      ansible.builtin.include_role:
         name: githubixx.harden_linux
 
 - name: Setup Wireguard VPN
@@ -30,27 +32,30 @@
   gather_facts: true
   tasks:
     - name: Setup wireguard role
-      include_role:
+      ansible.builtin.include_role:
         name: githubixx.ansible_role_wireguard
 
-
-- name: Setup Kubernetes certificates
+- name: Setup cfssl
   hosts: k8s_assets
   become: true
   gather_facts: false
   tasks:
     - name: Install cfssl
-      include_role:
+      ansible.builtin.include_role:
         name: githubixx.cfssl
 
+- name: Setup Kubernetes certificates
+  hosts: k8s_assets
+  gather_facts: false
+  tasks:
     - name: Generate etcd and K8s TLS certificates
-      include_role:
+      ansible.builtin.include_role:
         name: githubixx.kubernetes_ca
 
     - name: Copy certificate files from assets to local host
       ansible.posix.synchronize:
         mode: pull
-        src: "{{ k8s_config_directory }}"
+        src: "{{ k8s_ca_conf_directory }}"
         dest: "/tmp"
 
 - name: Setup etcd
@@ -60,10 +65,10 @@
   gather_facts: true
   tasks:
     - name: Include etcd role
-      include_role:
+      ansible.builtin.include_role:
         name: githubixx.etcd
 
-- name: Setup Kubernetes authentication files
+- name: Setup Kubernetes client tooling
   hosts: k8s_assets
   become: true
   gather_facts: true
@@ -72,54 +77,6 @@
       ansible.builtin.include_role:
         name: githubixx.kubectl
 
-    - name: Generate kubelet kubeconfig
-      ansible.builtin.include_tasks:
-        file: "tasks/kubelets.yml"
-
-    - name: Generate kube-proxy kubeconfig
-      ansible.builtin.include_tasks:
-        file: "tasks/kube-proxy.yml"
-
-    - name: Generate kube-controller-manager kubeconfig
-      ansible.builtin.include_tasks:
-        file: "tasks/kube-controller-manager.yml"
-
-    - name: Generate kube-scheduler kubeconfig
-      ansible.builtin.include_tasks:
-        file: "tasks/kube-scheduler.yml"
-
-    - name: Generate kube-admin-user kubeconfig
-      ansible.builtin.include_tasks:
-        file: "tasks/kube-admin-user.yml"
-
-    - name: Generate kubeencryption configuration
-      ansible.builtin.include_tasks:
-        file: "tasks/kubeencryptionconfig.yml"
-
-    - name: Copy configuration files from assets to local host
-      ansible.posix.synchronize:
-        mode: pull
-        src: "{{ k8s_config_directory }}"
-        dest: "/tmp"
-
-- name: Setup K8s controller
-  hosts: k8s_controller
-  become: true
-  gather_facts: true
-  tasks:
-    - name: Install Kubernetes control plane
-      ansible.builtin.include_role:
-        name: githubixx.kubernetes_controller
-
-- name: Setup Kubernetes tooling
-  hosts: k8s_assets
-  become: true
-  gather_facts: true
-  tasks:
-    - name: Generate configuration for kubectl
-      ansible.builtin.include_tasks:
-        file: "tasks/kubectlconfig.yml"
-
     - name: Install support packages
       ansible.builtin.package:
         name: "{{ packages }}"
@@ -127,59 +84,127 @@
       vars:
         packages:
           - conntrack
-          - python3-pip
 
     - name: Install kubernetes Python package
-      ansible.builtin.pip:
-        name: kubernetes
+      ansible.builtin.package:
+        name: python3-kubernetes
         state: present
 
     - name: Install Helm role
       ansible.builtin.include_role:
         name: gantsign.helm
 
-- name: Setup K8s worker
+- name: Setup HAProxy
+  hosts: haproxy
+  remote_user: vagrant
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Setup haproxy role
+      ansible.builtin.include_role:
+        name: githubixx.haproxy
+
+- name: Setup containerd
   hosts: k8s_worker
   become: true
   gather_facts: true
   tasks:
+    - name: Include runc role
+      ansible.builtin.include_role:
+        name: githubixx.runc
+
+    - name: Include CNI role
+      ansible.builtin.include_role:
+        name: githubixx.cni
+
     - name: Include containerd role
       ansible.builtin.include_role:
         name: githubixx.containerd
 
-    - name: Setup Kubernetes worker
+- name: Setup Kubernetes controller
+  hosts: k8s_controller
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Include kubernetes_controller role
+      ansible.builtin.include_role:
+        name: githubixx.kubernetes_controller
+
+- name: Prepare kubeconfig for vagrant user
+  hosts: k8s_assets
+  become: true
+  gather_facts: false
+  vars:
+    k8s_controller__vagrant_kube_directory: "/home/vagrant/.kube"
+  tasks:
+    - name: Ensure .kube directory in vagrant home
+      ansible.builtin.file:
+        path: "{{ k8s_controller__vagrant_kube_directory }}"
+        state: directory
+        mode: "0700"
+        owner: "vagrant"
+        group: "vagrant"
+
+    - name: Copy admin.kubeconfig to vagrant home directory
+      ansible.builtin.copy:
+        src: "{{ k8s_admin_conf_dir }}/admin.kubeconfig"
+        dest: "{{ k8s_controller__vagrant_kube_directory }}/config"
+        mode: "0400"
+        remote_src: true
+        owner: "vagrant"
+        group: "vagrant"
+
+- name: Setup Kubernetes worker
+  hosts: k8s_worker
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Include kubernetes_worker role
       ansible.builtin.include_role:
         name: githubixx.kubernetes_worker
 
+- name: Setup Cilium CLI
+  hosts: test-assets
+  become: true
+  tasks:
+    - name: Include cilium_cli role
+      ansible.builtin.include_role:
+        name: githubixx.cilium_cli
+
+- name: Gather facts
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Populate Ansible hostVars
+      ansible.builtin.setup:
+
+- name: Setup Cilium
+  hosts: k8s_worker
+  become: true
+  environment:
+    K8S_AUTH_KUBECONFIG: "{{ k8s_admin_conf_dir }}/admin.kubeconfig"
+  tasks:
     - name: Include Cilium role
       ansible.builtin.include_role:
         name: githubixx.cilium_kubernetes
       vars:
         cilium_action: "install"
 
-- name: Taint Kubernetes control plane nodes
-  hosts: k8s_assets
+- name: Setup tooling to make worker nodes usable
+  hosts: test-assets
   become: true
-  gather_facts: true
-  tasks:
-    - name: Control plane nodes should only run Cilium pods
-      ansible.builtin.include_tasks:
-        file: tasks/taint_controller_nodes.yml
-
-- name: Waiting for Cilium
-  hosts: k8s_assets
-  become: true
-  gather_facts: true
+  environment:
+    K8S_AUTH_KUBECONFIG: "{{ k8s_admin_conf_dir }}/admin.kubeconfig"
   tasks:
     - name: Waiting for Cilium to become ready
       ansible.builtin.include_tasks:
         file: tasks/cilium_status.yml
 
-- name: Setup CoreDNS
-  hosts: k8s_assets
-  become: true
-  gather_facts: true
-  tasks:
+    - name: Control plane nodes should only run Cilium pods
+      ansible.builtin.include_tasks:
+        file: tasks/taint_controller_nodes.yml
+
     - name: Install CoreDNS
       ansible.builtin.include_tasks:
         file: tasks/coredns.yml

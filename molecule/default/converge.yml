@@ -1,9 +1,20 @@
 ---
-# Copyright (C) 2023 Robert Wimmer
+# Copyright (C) 2024 Robert Wimmer
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-- name: Setup Traefik
+- name: Gather facts
   hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Populate Ansible hostVars
+      ansible.builtin.setup:
+
+- name: Setup Traefik
+  hosts: k8s_worker
+  become: true
+  environment:
+    K8S_AUTH_KUBECONFIG: "{{ k8s_admin_conf_dir }}/admin.kubeconfig"
   tasks:
     - name: Include Traefik role
       ansible.builtin.include_role:
