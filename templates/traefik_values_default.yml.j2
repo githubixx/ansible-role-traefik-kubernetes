@@ -1,10 +1,20 @@
 # All possible Helm chart values here can be found at:
 # https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
 
+# IMPORTANT: The value "v2" is only meant to be used when you
+# migrate from Traefik v2 to v3! This snippet in the static configuration
+# makes the v2 format the default rule matchers syntax. If you do a fresh
+# install of Traefik this setting isn't needed. For more information see:
+# https://doc.traefik.io/traefik/migration/v2-to-v3/
+{% if traefik_default_path_matcher_syntax is defined %}
+core:
+  defaultRuleSyntax: {{ traefik_default_path_matcher_syntax }}
+{% endif %}
+
 image:
   registry: docker.io
   repository: traefik
-  tag: "2.11.8"
+  tag: "3.1.2"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
@@ -47,10 +57,15 @@ ports:
   # To access the dashboard you can use "kubectl port-forward" e.g.:
   # kubectl -n traefik port-forward $(kubectl get pods --selector "app.kubernetes.io/name=traefik" --output=name -A | head -1) 9000:9000
   # Opening http://localhost:9000/dashboard/ should show the dashboard.
+  #
+  # NOTE: You SHOULD NOT expose the "traefik" port on production deployments.
+  # If you want to access it from outside your cluster,
+  # use `kubectl port-forward` or create a secure ingress.
   traefik:
     port: 9000
-    expose: false
     protocol: TCP
+    expose:
+      default: false
   # Unsecured incoming HTTP traffic. If you uncomment "redirectTo: websecure"
   # all traffic that arrives at this port will be redirected to "websecure"
   # entry point which means to the entry point that handles secure HTTPS traffic.
@@ -65,15 +80,53 @@ ports:
   web:
     port: 30080
     hostPort: 80
-    expose: true
+    expose:
+      default: true
     protocol: TCP
     # redirectTo: websecure
   # Entry point for HTTPS traffic.
   websecure:
     port: 30443
     hostPort: 443
-    expose: true
+    expose:
+      default: true
     protocol: TCP
+    tls:
+      enabled: true
+
+# When providers.kubernetesGateway.enabled, deploy a default gateway
+gateway:
+  enabled: false
+  listeners:
+    web:
+      # Port is the network port. Multiple listeners may use the same port,
+      # subject to the Listener compatibility rules.
+      # The port must match a port declared in ports section.
+      port: 30080
+      # Specify expected protocol on this listener.
+      # See [ProtocolType](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.ProtocolType)
+      protocol: HTTP
+    #websecure:
+      # Port is the network port. Multiple listeners may use the same port,
+      # subject to the Listener compatibility rules.
+      # The port must match a port declared in ports section
+      #port: 30443
+      # Optional hostname.
+      # See [Hostname](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.Hostname)
+      #hostname:
+      # Specify expected protocol on this listener.
+      # See [ProtocolType](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.ProtocolType)
+      #protocol: HTTPS
+      # Routes are restricted to namespace of the gateway
+      # [by default](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.FromNamespaces)
+      #namespacePolicy
+      # Add certificates for TLS or HTTPS protocols. This value must be specified
+      # if "gateway.enabled: true" and "gateway.listeners.websecure" is defined!
+      # See [GatewayTLSConfig](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io%2fv1.GatewayTLSConfig)
+      #certificateRefs:
+      # TLS behavior for the TLS session initiated by the client.
+      # See [TLSModeType](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.TLSModeType).
+      #mode:
 
 # These security settings are basically best practice to limit attack surface
 # as good as possible.
@@ -121,3 +174,19 @@ updateStrategy:
   rollingUpdate:
     maxUnavailable: 1
     maxSurge: 0
+
+providers:
+  kubernetesCRD:
+    # Load Kubernetes "IngressRoute" provider
+    enabled: true
+  kubernetesIngress:
+    # Load Kubernetes "Ingress" provider
+    enabled: true
+  kubernetesGateway:
+    # Enable Traefik "Gateway" provider for Gateway API
+    enabled: false
+
+# Create a default IngressClass for Traefik
+ingressClass:
+  enabled: true
+  isDefaultClass: true

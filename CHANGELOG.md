@@ -1,5 +1,116 @@
 # Changelog
 
+## 7.0.0+30.1.0
+
+### Important note
+
+This is a major release upgrade of Traefik proxy `2.11.x` to `3.1.x` and the Traefik helm chart from `23.0.1` to `30.1.0`. This version of this role is ONLY compatible with Traefik `3.x.x`. If you need to stay with Traefik `2.11.x` please stay with version `6.0.1+23.2.0` of this role. Please read the following documentations before you upgrade to this role version:
+
+- [Traefik Helm Chart Change Log](https://github.com/traefik/traefik-helm-chart/blob/master/traefik/Changelog.md)
+- [Traefik Proxy Change Log](https://github.com/traefik/traefik/blob/master/CHANGELOG.md)
+- [Configuration Details for Migrating from Traefik v2 to v3](https://doc.traefik.io/traefik/migration/v2-to-v3-details/)
+- [Migration Guide: From v2 to v3](https://doc.traefik.io/traefik/migration/v2-to-v3/)
+- [Traefik v3 minor migrations](https://doc.traefik.io/traefik/migration/v3/)
+
+### Further interesting readings
+
+- [Traefik 3.0 GA Has Landed: Here's How to Migrate](https://traefik.io/blog/traefik-3-0-ga-has-landed-heres-how-to-migrate/)
+- [Announcing Traefik Proxy v3.1](https://traefik.io/blog/announcing-traefik-proxy-v3-1/)
+- [Getting started with Kubernetes Gateway API and Traefik](https://traefik.io/blog/getting-started-with-kubernetes-gateway-api-and-traefik/)
+- [Monitor Your Production at a Glance With Traefik 3.0 and OpenTelemetry](https://traefik.io/blog/monitor-your-production-at-a-glance-with-traefik-3-0-and-opentelemetry/)
+
+### Update CRDs
+
+As mentioned in the changelog for version [5.0.0+23.0.1](#5002301) of this role already, Custom Resource Definition (CRD) API Group `traefik.containo.us` was deprecated and is now removed. So **before** you upgrade to this release, make sure your Traefik resources are changed accordingly. Please use the API Group `traefik.io` instead. E.g.:
+
+- `ingressroutes.traefik.containo.us` -> `ingressroutes.traefik.io`
+- `ingressroutetcps.traefik.containo.us` -> `ingressroutetcps.traefik.io`
+- `ingressrouteudps.traefik.containo.us` -> `ingressrouteudps.traefik.io`
+- `middlewares.traefik.containo.us` -> `middlewares.traefik.io`
+- `middlewaretcps.traefik.containo.us` -> `middlewaretcps.traefik.io`
+- `serverstransports.traefik.containo.us` -> `serverstransports.traefik.io`
+- `tlsoptions.traefik.containo.us` -> `tlsoptions.traefik.io`
+- `tlsstores.traefik.containo.us` -> `tlsstores.traefik.io`
+- `traefikservices.traefik.containo.us` -> `traefikservices.traefik.io`
+
+E.g.
+
+```yaml
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+...
+```
+
+needs to be changed to
+
+```yaml
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+...
+```
+
+Do not delete the now obsolete `traefik.containo.us` CRDs yet! This should be done after Traefik 3.x was installed and the `IngressRoutes` and the other Traefik resources are still working. Here is an example to delete the obsolete CRDs after the upgrade:
+
+```bash
+kubectl delete crds \
+  ingressroutes.traefik.containo.us \
+  ingressroutetcps.traefik.containo.us \
+  ingressrouteudps.traefik.containo.us \
+  middlewares.traefik.containo.us \
+  middlewaretcps.traefik.containo.us \
+  serverstransports.traefik.containo.us \
+  tlsoptions.traefik.containo.us \
+  tlsstores.traefik.containo.us \
+  traefikservices.traefik.containo.us
+```
+
+Check if any `traefik.containo.us` CRDs are left:
+
+```bash
+kubectl get crds  | grep traefik.containo.us
+```
+
+### Helm values
+
+A few options were added to `templates/traefik_values_default.yml.j2`. E.g. added possibility to enable the Gateway API supported by Traefik v3 (disabled by default):
+
+```yaml
+providers:
+  kubernetesGateway:
+    # Enable Traefik "Gateway" provider for Gateway API
+    enabled: true
+
+# When providers.kubernetesGateway.enabled, deploy a default gateway
+gateway:
+  enabled: false
+  ...
+```
+
+`updateStrategy.rollingUpdate.maxSurge` was added add value set to `0` by default (needed when `maxUnavailable` is set to a value different to `0`):
+
+```yaml
+updateStrategy:
+  rollingUpdate:
+    maxSurge: 0
+```
+
+If you migrate from Traefik v2 to v3 you definitely should consider setting the variable `traefik_default_path_matcher_syntax: v2`. This sets
+
+```yaml
+core:
+  defaultRuleSyntax: v2
+```
+
+in `templates/traefik_values_default.yml.j2` to ensure backward compatibility with v2 path matcher syntax in the [dynamic configuration](https://doc.traefik.io/traefik/v3.0/migration/v2-to-v3-details/#dynamic-configuration-changes). Also see [Migration Guide: From v2 to v3](https://doc.traefik.io/traefik/migration/v2-to-v3/).
+
+`ports.(traefik|web|websecure).expose` was changed to `ports.(traefik|web|websecure).expose.default`. This was a change in the Helm chart values file.
+
+### Other changes
+
+- update Helm chart to version `31.0.0`
+- update Traefik from version `2.11.2` to `3.1.2`
+- update `.yamllint` to meet `ansible-lint` [requirements](https://ansible.readthedocs.io/projects/lint/rules/yaml/#yamllint-configuration)
+
 ## 6.1.0+23.2.0
 
 - update Traefik from version `2.11.2` to `2.11.8`

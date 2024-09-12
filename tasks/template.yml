@@ -17,7 +17,7 @@
       ansible.builtin.template:
         src: "{{ lookup('first_found', params) }}"
         dest: "{{ traefik__values_tmp_file.path }}"
-        mode: 0600
+        mode: "0600"
       delegate_to: "{{ traefik_delegate_to }}"
       run_once: true
       vars:
@@ -64,7 +64,7 @@
       ansible.builtin.file:
         dest: "{{ traefik_template_output_directory }}"
         state: directory
-        mode: 0755
+        mode: "0755"
       run_once: true
       delegate_to: 127.0.0.1
 
@@ -72,7 +72,7 @@
       ansible.builtin.copy:
         dest: "{{ traefik_template_output_directory }}/template.yml"
         content: "{{ traefik__template.stdout }}"
-        mode: 0644
+        mode: "0644"
       run_once: true
       delegate_to: 127.0.0.1
 

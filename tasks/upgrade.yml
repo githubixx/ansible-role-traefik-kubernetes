@@ -28,7 +28,7 @@
       ansible.builtin.template:
         src: "{{ lookup('first_found', params) }}"
         dest: "{{ traefik_values_tmp_file.path }}"
-        mode: 0600
+        mode: "0600"
       delegate_to: "{{ traefik_delegate_to }}"
       run_once: true
       vars:

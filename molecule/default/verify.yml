@@ -56,6 +56,11 @@
         state: present
         definition: "{{ lookup('file', 'test-ingressroute-v2.yml') | from_yaml }}"
 
+    - name: Create test IngressRoute - Traefik v3 syntax
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', 'test-ingressroute-v3.yml') | from_yaml }}"
+
     - name: Get homepage from test deployment - www.example-v2.com
       ansible.builtin.get_url:
         url: "http://10.10.10.200"
@@ -69,10 +74,31 @@
         that:
           - (test__check_url.status_code | default(999) | int) == 200
 
+    - name: Get homepage from test deployment - www.example-v3.com
+      ansible.builtin.get_url:
+        url: "http://10.10.10.200"
+        dest: "/dev/null"
+        headers:
+          Host: www.example-v3.com
+      register: test__check_url
+
+    - name: Request to test-v3 IngressRoute should return HTTP 200
+      ansible.builtin.assert:
+        that:
+          - (test__check_url.status_code | default(999) | int) == 200
+
     - name: Delete test IngressRoute - Traefik v2 syntax
       kubernetes.core.k8s:
         name: "test-v2"
-        api_version: "traefik.containo.us/v1alpha1"
+        api_version: "v1alpha1"
+        kind: "IngressRoute"
+        namespace: "test"
+        state: absent
+
+    - name: Delete test IngressRoute - Traefik v3 syntax
+      kubernetes.core.k8s:
+        name: "test-v3"
+        api_version: "v1alpha1"
         kind: "IngressRoute"
         namespace: "test"
         state: absent
