@@ -111,6 +111,12 @@ in `templates/traefik_values_default.yml.j2` to ensure backward compatibility wi
 - update Traefik from version `2.11.2` to `3.1.2`
 - update `.yamllint` to meet `ansible-lint` [requirements](https://ansible.readthedocs.io/projects/lint/rules/yaml/#yamllint-configuration)
 
+## 6.1.0+23.2.0
+
+- update Traefik from version `2.11.2` to `2.11.8`
+- refactor Molecule test
+- `templates/traefik_values_default.yml.j2`: add `updateStrategy.rollingUpdate.maxSurge` with value `0`
+
 ## 6.0.1+23.2.0
 
 - update Traefik from version `2.11.0` to `2.11.2`
