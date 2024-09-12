@@ -49,9 +49,7 @@ kind: IngressRoute
 ...
 ```
 
-After all APIs are changed from `traefik.containo.us` to `traefik.io` you can delete the old ones e.g. `kubectl delete ingressroutes.traefik.containo.us ...`.
-
-Do not delete the now obsolete `traefik.containo.us` CRDs! This should be done after Traefik 3.x was installed and the `IngressRoutes` are still working. Here is an example to delete the obsolete CRDs after the upgrade:
+Do not delete the now obsolete `traefik.containo.us` CRDs yet! This should be done after Traefik 3.x was installed and the `IngressRoutes` and the other Traefik resources are still working. Here is an example to delete the obsolete CRDs after the upgrade:
 
 ```bash
 kubectl delete crds \
@@ -74,7 +72,7 @@ kubectl get crds  | grep traefik.containo.us
 
 ### Helm values
 
-A few options were added to `templates/traefik_values_default.yml.j2`. E.g added options to enable the Gateway API supported by Traefik v3 (disabled by default):
+A few options were added to `templates/traefik_values_default.yml.j2`. E.g. added possibility to enable the Gateway API supported by Traefik v3 (disabled by default):
 
 ```yaml
 providers:
@@ -88,7 +86,7 @@ gateway:
   ...
 ```
 
-`updateStrategy.rollingUpdate.maxSurge` was added add value set to `0` by default:
+`updateStrategy.rollingUpdate.maxSurge` was added add value set to `0` by default (needed when `maxUnavailable` is set to a value different to `0`):
 
 ```yaml
 updateStrategy:
@@ -96,7 +94,7 @@ updateStrategy:
     maxSurge: 0
 ```
 
-If you migrate from Traefik v2 to v3 you might consider setting variable `traefik_default_path_matcher_syntax: v2`. This sets
+If you migrate from Traefik v2 to v3 you definitely should consider setting the variable `traefik_default_path_matcher_syntax: v2`. This sets
 
 ```yaml
 core:
@@ -105,7 +103,7 @@ core:
 
 in `templates/traefik_values_default.yml.j2` to ensure backward compatibility with v2 path matcher syntax in the [dynamic configuration](https://doc.traefik.io/traefik/v3.0/migration/v2-to-v3-details/#dynamic-configuration-changes). Also see [Migration Guide: From v2 to v3](https://doc.traefik.io/traefik/migration/v2-to-v3/).
 
-`ports.(traefik|web|websecure).expose` was changed to `ports.(traefik|web|websecure).expose.default`.
+`ports.(traefik|web|websecure).expose` was changed to `ports.(traefik|web|websecure).expose.default`. This was a change in the Helm chart values file.
 
 ### Other changes
 
