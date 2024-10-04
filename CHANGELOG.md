@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.1.1+31.1.1
+
+- update Traefik from version `3.1.4` to `3.1.5`
+
 ## 7.1.0+31.1.1
 
 - update Helm chart to version `31.1.1`
