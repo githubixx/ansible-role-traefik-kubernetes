@@ -39,7 +39,7 @@ see [CHANGELOG.md](https://github.com/githubixx/ansible-role-traefik-kubernetes/
 
 ```yaml
 # Helm chart version
-traefik_chart_version: "31.1.1"
+traefik_chart_version: "33.2.1"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -149,7 +149,7 @@ core:
 image:
   registry: docker.io
   repository: traefik
-  tag: "3.1.5"
+  tag: "3.2.3"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
