@@ -45,32 +45,67 @@ traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"
 # "true" if CRDs should be installed. Also see:
 # https://github.com/traefik/traefik-helm-chart/tree/master/traefik/crds
 # The following CRDs will be installed:
+#
 #   - accesscontrolpolicies.hub.traefik.io
 #   - apiaccesses.hub.traefik.io
 #   - apiportals.hub.traefik.io
 #   - apiratelimits.hub.traefik.io
 #   - apis.hub.traefik.io
 #   - apiversions.hub.traefik.io
-#   - backendtlspolicies.gateway.networking.k8s.io
-#   - gatewayclasses.gateway.networking.k8s.io
-#   - gateways.gateway.networking.k8s.io
-#   - grpcroutes.gateway.networking.k8s.io
-#   - httproutes.gateway.networking.k8s.io
 #   - ingressroutes.traefik.io
 #   - ingressroutetcps.traefik.io
 #   - ingressrouteudps.traefik.io
 #   - middlewares.traefik.io
 #   - middlewaretcps.traefik.io
-#   - referencegrants.gateway.networking.k8s.io
 #   - serverstransports.traefik.io
 #   - serverstransporttcps.traefik.io
-#   - tcproutes.gateway.networking.k8s.io
 #   - tlsoptions.traefik.io
-#   - tlsroutes.gateway.networking.k8s.io
 #   - tlsstores.traefik.io
 #   - traefikservices.traefik.io
-#   - udproutes.gateway.networking.k8s.io
+#
 traefik_install_crds: false
+
+# Specifies which Gateway API CRDs (CustomResourceDefinitions) should
+# be installed. This setting is about installing "*.gateway.networking.k8s.io"
+# CRDs.
+#
+# By default this setting is "none" which means no Gateway API CRDs will
+# be installed.
+#
+# The Kubernetes Gateway API has two release channels (see:
+# https://gateway-api.sigs.k8s.io/concepts/versioning/#release-channels):
+#
+#   - "standard"
+#   - "experimental"
+#
+# "standard" will install the following CRDs and it's stable versions:
+#
+#   - gatewayclasses.gateway.networking.k8s.io
+#   - gateways.gateway.networking.k8s.io
+#   - grpcroutes.gateway.networking.k8s.io
+#   - httproutes.gateway.networking.k8s.io
+#   - referencegrants.gateway.networking.k8s.io
+#
+# "experimental" will install the ones listed in "standard" plus a few
+# more. Please be aware that the "experimental" channel is subject to
+# change and might not be stable. That means that the CRDs might change
+# or be removed in future releases. So the CRDs listed above in "standard"
+# might also contain fields that are subject to change if the "experimental"
+# channel is used. The "experimental" channel installs the following
+# additional CRDs:
+#
+#   - backendlbpolicies.gateway.networking.k8s.io
+#   - backendtlspolicies.gateway.networking.k8s.io
+#   - gatewayclasses.gateway.networking.k8s.io
+#   - gateways.gateway.networking.k8s.io
+#   - grpcroutes.gateway.networking.k8s.io
+#   - httproutes.gateway.networking.k8s.io
+#   - referencegrants.gateway.networking.k8s.io
+#   - tcproutes.gateway.networking.k8s.io
+#   - tlsroutes.gateway.networking.k8s.io
+#   - udproutes.gateway.networking.k8s.io
+#
+traefik_gateway_api_crds: "none"
 
 # By default all tasks that needs to communicate with the Kubernetes
 # cluster are executed on your local host (127.0.0.1). But if that one
