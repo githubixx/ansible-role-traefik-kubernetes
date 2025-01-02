@@ -15,7 +15,7 @@ For further information about the Helm chart settings see below.
 
 ## Versions
 
-I tag every release and try to stay with [semantic versioning](http://semver.org). If you want to use the role I recommend to checkout the latest tag. The master branch is basically development while the tags mark stable releases. But in general I try to keep master in good shape too. A tag `7.0.0+31.0.0` means this is release `7.0.0` of this role and it uses Helm chart version `31.0.0` (the `Traefik` version used is specified in the values file [see below]). If the role itself changes `X.Y.Z` before `+` will increase. If the Traefik chart version changes `X.Y.Z` after `+` will increase too. This allows to tag bugfixes and new major versions of the role while it's still developed for a specific Traefik release.
+I tag every release and try to stay with [semantic versioning](http://semver.org). If you want to use the role I recommend to checkout the latest tag. The master branch is basically development while the tags mark stable releases. But in general I try to keep master in good shape too. A tag `8.0.0+33.2.1` means this is release `8.0.0` of this role and it uses Helm chart version `33.2.1` (the `Traefik` version used is specified in the values file [see below]). If the role itself changes `X.Y.Z` before `+` will increase. If the Traefik chart version changes `X.Y.Z` after `+` will increase too. This allows to tag bugfixes and new major versions of the role while it's still developed for a specific Traefik release.
 
 ## Requirements
 
@@ -33,7 +33,48 @@ And of course you need a Kubernetes Cluster ;-)
 
 ## Changelog
 
-see [CHANGELOG.md](https://github.com/githubixx/ansible-role-traefik-kubernetes/blob/master/CHANGELOG.md)
+**Change history:**
+
+See full [CHANGELOG.md](https://github.com/githubixx/ansible-role-traefik-kubernetes/blob/master/CHANGELOG.md)
+
+**Recent changes:**
+
+## 8.0.0+33.2.1
+
+### Important notes for Traefik Helm chart v33.2.1
+
+There were quite some changes in regards to Kubernetes Gateway API since the last upgrade. If you haven't used Gateway API resources so far, upgrading shouldn't be that much of an issue. But if you do, please read the changelogs before upgrading!
+
+- [Traefik Helm chart v32.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v32.0.0)
+- [Traefik Helm chart v33.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v33.0.0)
+- [gateway-api v1.2.0](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.2.0): In case you're using Kubernetes [Gateway API](https://github.com/kubernetes-sigs/gateway-api/) resources, CRDs will no longer serve the `v1alpha2` versions of `GRPCRoute` and `ReferenceGrant`. So make sure you upgrade that resources to `v1` before the upgrade.
+- Kubernetes Gateway Provider Experimental Channel: Because of a breaking change introduced in Kubernetes Gateway API [v1.2.0-rc1](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.2.0-rc1), Traefik v3.2 only supports Kubernetes Gateway v1.2.x when experimental channel features are enabled (set variable `traefik_gateway_api_crds` to `experimental`).
+- See [Gateway API v1.2 upgrade nodes](https://gateway-api.sigs.k8s.io/guides/#v12-upgrade-notes)
+- See [Gateway API v1.1 upgrade nodes](https://gateway-api.sigs.k8s.io/guides/#v11-upgrade-notes)
+
+If you're using the default values file `templates/traefik_values_default.yml.j2` of this role then the `traefik` endpoint stays on port `9000`. The changelog of the Helm chart `v33.0.0` mentions that the default has changed to port `8080`. So if you have your own values file this is something do check!
+
+Also the following (potential) breaking changes are mentioned in the [changelog of Traefik Helm chart v33.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v33.0.0):
+
+- `publishedService` is enabled by default on Ingress provider
+- The `POD_NAME` and `POD_NAMESPACE` environment variables are now set by default, without values.
+- In values, `certResolvers` specific syntax has been [reworked](https://github.com/traefik/traefik-helm-chart/pull/1214) to align with Traefik Proxy syntax.
+- Traefik Proxy 3.2 supports Gateway API v1.2 (standard channel)
+
+Breaking changes mentioned in [changelog of Traefik Helm chart v32.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v32.0.0):
+
+- There is a breaking change on how Redis is configured
+
+### Important changes regarding gateway-api in 8.0.0+33.2.1
+
+As mentioned above in Gateway API v1.2.0 some breaking changes were introduced which should make future upgrades easier. But at least currently these changes are introducing more headache IMHO esp. if one needs to upgrade existing Gateway API resources.
+
+To reflect these changes, setting the variable `traefik_install_crds` to `true` no longer installs `*.gateway.networking.k8s.io` CRDs! To install these CRDs set Ansible variable `traefik_gateway_api_crds` to `standard` or `experimental` (see `defaults/main.yaml` for more information regarding Gateway API CRD settings). If you already using Gateway API resources since earlier versions it might make sense to use the `experimental` channel for now (see [Gateway API v1.1 upgrade nodes](https://gateway-api.sigs.k8s.io/guides/#v11-upgrade-notes) for more information on switching from `experimental` to `standard` channel later).
+
+### Other changes in 8.0.0+33.2.1
+
+- update Traefik from version `3.1.5` to `3.2.3`
+- update Custom Resource Definitions (CRDs)
 
 ## Role Variables
 
@@ -68,7 +109,7 @@ traefik_namespace: "traefik"
 # "templates/traefik_values_default.yml.j2" file. If you use your
 # own values file you can set this value there. It sets "core.defaultRuleSyntax"
 # accordingly.
-traefik_default_path_matcher_syntax: "v2"
+traefik_default_path_matcher_syntax: "v3"
 
 # Directory that contains Helm chart values file. If you specify this
 # variable Ansible will try to locate a file called "values.yml.j2" or
@@ -84,32 +125,67 @@ traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"
 # "true" if CRDs should be installed. Also see:
 # https://github.com/traefik/traefik-helm-chart/tree/master/traefik/crds
 # The following CRDs will be installed:
+#
 #   - accesscontrolpolicies.hub.traefik.io
 #   - apiaccesses.hub.traefik.io
 #   - apiportals.hub.traefik.io
 #   - apiratelimits.hub.traefik.io
 #   - apis.hub.traefik.io
 #   - apiversions.hub.traefik.io
-#   - backendtlspolicies.gateway.networking.k8s.io
-#   - gatewayclasses.gateway.networking.k8s.io
-#   - gateways.gateway.networking.k8s.io
-#   - grpcroutes.gateway.networking.k8s.io
-#   - httproutes.gateway.networking.k8s.io
 #   - ingressroutes.traefik.io
 #   - ingressroutetcps.traefik.io
 #   - ingressrouteudps.traefik.io
 #   - middlewares.traefik.io
 #   - middlewaretcps.traefik.io
-#   - referencegrants.gateway.networking.k8s.io
 #   - serverstransports.traefik.io
 #   - serverstransporttcps.traefik.io
-#   - tcproutes.gateway.networking.k8s.io
 #   - tlsoptions.traefik.io
-#   - tlsroutes.gateway.networking.k8s.io
 #   - tlsstores.traefik.io
 #   - traefikservices.traefik.io
-#   - udproutes.gateway.networking.k8s.io
+#
 traefik_install_crds: false
+
+# Specifies which Gateway API CRDs (CustomResourceDefinitions) should
+# be installed. This setting is about installing "*.gateway.networking.k8s.io"
+# CRDs.
+#
+# By default this setting is "none" which means no Gateway API CRDs will
+# be installed.
+#
+# The Kubernetes Gateway API has two release channels (see:
+# https://gateway-api.sigs.k8s.io/concepts/versioning/#release-channels):
+#
+#   - "standard"
+#   - "experimental"
+#
+# "standard" will install the following CRDs:
+#
+#   - gatewayclasses.gateway.networking.k8s.io
+#   - gateways.gateway.networking.k8s.io
+#   - grpcroutes.gateway.networking.k8s.io
+#   - httproutes.gateway.networking.k8s.io
+#   - referencegrants.gateway.networking.k8s.io
+#
+# "experimental" will install the ones listed in "standard" plus a few
+# more. Please be aware that the "experimental" channel is subject to
+# change and might not be stable. That means that the CRDs might change
+# or be removed in future releases. So the CRDs listed above in "standard"
+# might also contain fields that are subject to change if the "experimental"
+# channel is used. The "experimental" channel installs the following
+# additional CRDs:
+#
+#   - backendlbpolicies.gateway.networking.k8s.io
+#   - backendtlspolicies.gateway.networking.k8s.io
+#   - gatewayclasses.gateway.networking.k8s.io
+#   - gateways.gateway.networking.k8s.io
+#   - grpcroutes.gateway.networking.k8s.io
+#   - httproutes.gateway.networking.k8s.io
+#   - referencegrants.gateway.networking.k8s.io
+#   - tcproutes.gateway.networking.k8s.io
+#   - tlsroutes.gateway.networking.k8s.io
+#   - udproutes.gateway.networking.k8s.io
+#
+traefik_gateway_api_crds: "none"
 
 # By default all tasks that needs to communicate with the Kubernetes
 # cluster are executed on your local host (127.0.0.1). But if that one
@@ -130,7 +206,7 @@ traefik_template_output_directory: "{{ '~/traefik/template' | expanduser }}"
 
 ## Usage
 
-The first thing to do is to check `templates/traefik_values_default.yml.j2`. This file contains the values/settings for the Traefik Helm chart that are different to the default ones which are located [here](https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml). These are the default settings used:
+The first thing to do is to check `templates/traefik_values_default.yml.j2`. This file contains the important values/settings for the Traefik Helm chart that are partly different to the default ones which are located [here](https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml). These are the default settings used:
 
 ```yaml
 # All possible Helm chart values here can be found at:
@@ -320,6 +396,12 @@ providers:
   kubernetesGateway:
     # Enable Traefik "Gateway" provider for Gateway API
     enabled: false
+    # Toggles support for the Experimental Channel resources (Gateway API
+    # release channels documentation). This option currently enables
+    # support for "TCPRoute" and "TLSRoute".
+    # If this setting is set to "true" please also set the Ansible variable
+    # "traefik_gateway_api_crds" to "experimental"!
+    experimentalChannel: false
 
 # Create a default IngressClass for Traefik
 ingressClass:
