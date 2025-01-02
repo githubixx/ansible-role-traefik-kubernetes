@@ -41,10 +41,10 @@
       kubernetes.core.k8s:
         state: present
         definition: "{{ lookup('file', 'test-deployment.yml') | from_yaml }}"
-        wait: yes
+        wait: true
         wait_condition:
           type: Available
-          status: True
+          status: true
 
     - name: Create test Service
       kubernetes.core.k8s:
@@ -61,15 +61,28 @@
         state: present
         definition: "{{ lookup('file', 'test-ingressroute-v3.yml') | from_yaml }}"
 
+    - name: Wait for deployment to be ready
+      kubernetes.core.k8s_info:
+        api_version: apps/v1
+        kind: Deployment
+        name: test
+        namespace: test
+      register: test__deployment_info
+      until: test__deployment_info.resources[0].status.readyReplicas == test__deployment_info.resources[0].status.replicas
+      retries: 30
+      delay: 10
+
     - name: Get homepage from test deployment - www.example-v2.com
       ansible.builtin.get_url:
         url: "http://10.10.10.200"
-        dest: "/dev/null"
+        dest: "/tmp/test-v2"
+        mode: "0600"
+        timeout: 20
         headers:
           Host: www.example-v2.com
       register: test__check_url
 
-    - name: Request to test-v2 IngressRoute should return HTTP 200 
+    - name: Request to test-v2 IngressRoute should return HTTP 200
       ansible.builtin.assert:
         that:
           - (test__check_url.status_code | default(999) | int) == 200
@@ -77,7 +90,9 @@
     - name: Get homepage from test deployment - www.example-v3.com
       ansible.builtin.get_url:
         url: "http://10.10.10.200"
-        dest: "/dev/null"
+        dest: "/tmp/test-v3"
+        mode: "0600"
+        timeout: 20
         headers:
           Host: www.example-v3.com
       register: test__check_url
