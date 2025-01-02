@@ -185,6 +185,12 @@ providers:
   kubernetesGateway:
     # Enable Traefik "Gateway" provider for Gateway API
     enabled: false
+    # Toggles support for the Experimental Channel resources (Gateway API
+    # release channels documentation). This option currently enables
+    # support for "TCPRoute" and "TLSRoute".
+    # If this setting is set to "true" please also set the Ansible variable
+    # "traefik_gateway_api_crds" to "experimental"!
+    experimentalChannel: false
 
 # Create a default IngressClass for Traefik
 ingressClass:
