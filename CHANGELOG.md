@@ -1,5 +1,42 @@
 # Changelog
 
+## 8.0.0+33.2.1
+
+### Important notes for Traefik Helm chart v33.2.1
+
+There were quite some changes in regards to Kubernetes Gateway API since the last upgrade. If you haven't used Gateway API resources so far, upgrading shouldn't be that much of an issue. But if you do, please read the changelogs before upgrading!
+
+- [Traefik Helm chart v32.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v32.0.0)
+- [Traefik Helm chart v33.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v33.0.0)
+- [gateway-api v1.2.0](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.2.0): In case you're using Kubernetes [Gateway API](https://github.com/kubernetes-sigs/gateway-api/) resources, CRDs will no longer serve the `v1alpha2` versions of `GRPCRoute` and `ReferenceGrant`. So make sure you upgrade that resources to `v1` before the upgrade.
+- Kubernetes Gateway Provider Experimental Channel: Because of a breaking change introduced in Kubernetes Gateway API [v1.2.0-rc1](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.2.0-rc1), Traefik v3.2 only supports Kubernetes Gateway v1.2.x when experimental channel features are enabled (set variable `traefik_gateway_api_crds` to `experimental`).
+- See [Gateway API v1.2 upgrade nodes](https://gateway-api.sigs.k8s.io/guides/#v12-upgrade-notes)
+- See [Gateway API v1.1 upgrade nodes](https://gateway-api.sigs.k8s.io/guides/#v11-upgrade-notes)
+
+If you're using the default values file `templates/traefik_values_default.yml.j2` of this role then the `traefik` endpoint stays on port `9000`. The changelog of the Helm chart `v33.0.0` mentions that the default has changed to port `8080`. So if you have your own values file this is something do check!
+
+Also the following (potential) breaking changes are mentioned in the [changelog of Traefik Helm chart v33.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v33.0.0):
+
+- `publishedService` is enabled by default on Ingress provider
+- The `POD_NAME` and `POD_NAMESPACE` environment variables are now set by default, without values.
+- In values, `certResolvers` specific syntax has been [reworked](https://github.com/traefik/traefik-helm-chart/pull/1214) to align with Traefik Proxy syntax.
+- Traefik Proxy 3.2 supports Gateway API v1.2 (standard channel)
+
+Breaking changes mentioned in [changelog of Traefik Helm chart v32.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v32.0.0):
+
+- There is a breaking change on how Redis is configured
+
+### Important changes regarding gateway-api in 8.0.0+33.2.1
+
+As mentioned above in Gateway API v1.2.0 some breaking changes were introduced which should make future upgrades easier. But at least currently these changes are introducing more headache IMHO esp. if one needs to upgrade existing Gateway API resources.
+
+To reflect these changes, setting the variable `traefik_install_crds` to `true` no longer installs `*.gateway.networking.k8s.io` CRDs! To install these CRDs set Ansible variable `traefik_gateway_api_crds` to `standard` or `experimental` (see `defaults/main.yaml` for more information regarding Gateway API CRD settings). If you already using Gateway API resources since earlier versions it might make sense to use the `experimental` channel for now (see [Gateway API v1.1 upgrade nodes](https://gateway-api.sigs.k8s.io/guides/#v11-upgrade-notes) for more information on switching from `experimental` to `standard` channel later).
+
+### Other changes in 8.0.0+33.2.1
+
+- update Traefik from version `3.1.5` to `3.2.3`
+- update Custom Resource Definitions (CRDs)
+
 ## 7.1.1+31.1.1
 
 - update Traefik from version `3.1.4` to `3.1.5`

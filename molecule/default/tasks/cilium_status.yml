@@ -15,5 +15,5 @@
     namespace: cilium
     wait: true
     wait_sleep: 10
-    wait_timeout: 600
+    wait_timeout: 1200
   register: cilium__daemonset_info

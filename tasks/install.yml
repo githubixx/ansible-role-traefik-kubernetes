@@ -16,6 +16,18 @@
       when:
         - traefik_install_crds
 
+    - name: Install Gateway API CRDs
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', item) | from_yaml }}"
+      with_fileglob:
+        - "crds/gateway-api-{{ traefik_gateway_api_crds }}/*.yaml"
+      delegate_to: "{{ traefik_delegate_to }}"
+      run_once: true
+      when:
+        - traefik_gateway_api_crds
+        - traefik_gateway_api_crds != "none"
+
     - name: Create temporary file for Helm values
       ansible.builtin.tempfile:
         state: file

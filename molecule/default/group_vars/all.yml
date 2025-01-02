@@ -216,5 +216,6 @@ k8s_kube_proxy_csr_key_size: "384"
 
 # Variables for Traefik
 traefik_install_crds: true
+traefik_gateway_api_crds: "standard"
 traefik_delegate_to: test-assets
 traefik_default_path_matcher_syntax: "v2"
