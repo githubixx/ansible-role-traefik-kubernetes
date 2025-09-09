@@ -80,7 +80,7 @@ To reflect these changes, setting the variable `traefik_install_crds` to `true` 
 
 ```yaml
 # Helm chart version
-traefik_chart_version: "33.2.1"
+traefik_chart_version: "37.1.0"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -225,7 +225,7 @@ core:
 image:
   registry: docker.io
   repository: traefik
-  tag: "3.2.3"
+  tag: "3.5.2"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:

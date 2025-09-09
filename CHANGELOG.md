@@ -1,5 +1,22 @@
 # Changelog
 
+## 9.0.0+37.1.0
+
+### Important notes for Traefik Helm chart v37.1.0
+
+This update contains a rather big update of the Traefik Helm chart from v33.2.1 to v37.1.0. Please check [Traefik Proxy Helm Chart](https://github.com/traefik/traefik-helm-chart/releases) for potential breaking changes:
+
+- [Traefik Helm chart v34.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v34.0.0)
+- [Traefik Helm chart v35.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v35.0.0)
+- [Traefik Helm chart v36.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v36.0.0)
+- [Traefik Helm chart v37.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v37.0.0)
+
+
+### Other changes in 9.0.0+37.1.0
+
+- update Traefik from version `3.2.3` to `3.5.2`
+- update Custom Resource Definitions (CRDs)
+
 ## 8.0.0+33.2.1
 
 ### Important notes for Traefik Helm chart v33.2.1
