@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.14.0
+    controller-gen.kubebuilder.io/version: v0.17.1
   name: apiversions.hub.traefik.io
 spec:
   group: hub.traefik.io
@@ -46,16 +46,66 @@ spec:
           spec:
             description: The desired behavior of this APIVersion.
             properties:
+              cors:
+                description: Cors defines the Cross-Origin Resource Sharing configuration.
+                properties:
+                  addVaryHeader:
+                    description: AddVaryHeader defines whether the Vary header is
+                      automatically added/updated when the AllowOriginsList is set.
+                    type: boolean
+                  allowCredentials:
+                    description: AllowCredentials defines whether the request can
+                      include user credentials.
+                    type: boolean
+                  allowHeadersList:
+                    description: AllowHeadersList defines the Access-Control-Request-Headers
+                      values sent in preflight response.
+                    items:
+                      type: string
+                    type: array
+                  allowMethodsList:
+                    description: AllowMethodsList defines the Access-Control-Request-Method
+                      values sent in preflight response.
+                    items:
+                      type: string
+                    type: array
+                  allowOriginListRegex:
+                    description: AllowOriginListRegex is a list of allowable origins
+                      written following the Regular Expression syntax (https://golang.org/pkg/regexp/).
+                    items:
+                      type: string
+                    type: array
+                  allowOriginsList:
+                    description: AllowOriginsList is a list of allowable origins.
+                      Can also be a wildcard origin "*".
+                    items:
+                      type: string
+                    type: array
+                  exposeHeadersList:
+                    description: ExposeHeadersList defines the Access-Control-Expose-Headers
+                      values sent in preflight response.
+                    items:
+                      type: string
+                    type: array
+                  maxAge:
+                    description: MaxAge defines the time that a preflight request
+                      may be cached.
+                    format: int64
+                    type: integer
+                type: object
+              description:
+                description: Description explains what the APIVersion does.
+                type: string
               openApiSpec:
                 description: OpenAPISpec defines the API contract as an OpenAPI specification.
                 properties:
                   operationSets:
                     description: OperationSets defines the sets of operations to be
-                      referenced for granular filtering in APIAccesses.
+                      referenced for granular filtering in APICatalogItems or ManagedSubscriptions.
                     items:
                       description: |-
                         OperationSet gives a name to a set of matching OpenAPI operations.
-                        This set of operations can then be referenced for granular filtering in APIAccesses.
+                        This set of operations can then be referenced for granular filtering in APICatalogItems or ManagedSubscriptions.
                       properties:
                         matchers:
                           description: Matchers defines a list of alternative rules
@@ -107,7 +157,7 @@ spec:
                           type: array
                         name:
                           description: Name is the name of the OperationSet to reference
-                            in APIAccesses.
+                            in APICatalogItems or ManagedSubscriptions.
                           maxLength: 253
                           type: string
                       required:
@@ -157,6 +207,11 @@ spec:
                     x-kubernetes-validations:
                     - message: must be a valid URL
                       rule: isURL(self)
+                  validateRequestMethodAndPath:
+                    description: |-
+                      ValidateRequestMethodAndPath validates that the path and method matches an operation defined in the OpenAPI specification.
+                      This option overrides the default behavior configured in the static configuration.
+                    type: boolean
                 type: object
                 x-kubernetes-validations:
                 - message: path or url must be defined
