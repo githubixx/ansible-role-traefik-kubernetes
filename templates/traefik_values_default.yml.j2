@@ -83,7 +83,11 @@ ports:
     expose:
       default: true
     protocol: TCP
-    # redirectTo: websecure
+    #redirections:
+    #  entryPoint:
+    #    to: websecure
+    #    scheme: https
+    #    permanent: true
   # Entry point for HTTPS traffic.
   websecure:
     port: 30443
