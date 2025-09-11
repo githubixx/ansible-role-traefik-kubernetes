@@ -37,9 +37,9 @@ additionalArguments:
 # First one disables periodical check if a new version has been released.
 #
 # Second one disables anonymous usage statistics. 
-globalArguments:
-  - "--global.checknewversion=false"
-  - "--global.sendanonymoususage=false"
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
 
 # This creates the Traefik deployment. As "DaemonSet" is specified here
 # this will create a Traefik instance on all Kubernetes worker nodes. If
@@ -118,8 +118,8 @@ gateway:
       # See [ProtocolType](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.ProtocolType)
       #protocol: HTTPS
       # Routes are restricted to namespace of the gateway
-      # [by default](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.FromNamespaces)
-      #namespacePolicy
+      # See [by default](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.FromNamespaces)
+      #namespacePolicy:
       # Add certificates for TLS or HTTPS protocols. This value must be specified
       # if "gateway.enabled: true" and "gateway.listeners.websecure" is defined!
       # See [GatewayTLSConfig](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io%2fv1.GatewayTLSConfig)
