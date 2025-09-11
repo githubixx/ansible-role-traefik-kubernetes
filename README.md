@@ -105,6 +105,7 @@ This update contains a rather big update of the Traefik Helm chart from v33.2.1 
 
 - update Traefik from version `3.2.3` to `3.5.2`
 - update Custom Resource Definitions (CRDs)
+- **IMPORTANT:** If you enabled Gateway API experimental channel and update from Gateway API v1.2.0 to v1.3.0 (available in this release), `backendlbpolicies.gateway.networking.k8s.io` is no longer provided. You might adjust your resources accordingly and delete the CustomResourceDefinition (CRD) afterwards. E.g. `kubectl delete customresourcedefinitions.apiextensions.k8s.io backendlbpolicies.gateway.networking.k8s.io`. **Recommendation**: Check your specific Gateway API implementation's documentation for current load balancing configuration options, as each implementation handles this differently for now.
 
 ### Further reading
 
@@ -210,7 +211,6 @@ traefik_install_crds: false
 # channel is used. The "experimental" channel installs the following
 # additional CRDs:
 #
-#   - backendlbpolicies.gateway.networking.k8s.io
 #   - backendtlspolicies.gateway.networking.k8s.io
 #   - gatewayclasses.gateway.networking.k8s.io
 #   - gateways.gateway.networking.k8s.io
@@ -220,6 +220,8 @@ traefik_install_crds: false
 #   - tcproutes.gateway.networking.k8s.io
 #   - tlsroutes.gateway.networking.k8s.io
 #   - udproutes.gateway.networking.k8s.io
+#   - xbackendtrafficpolicies.gateway.networking.x-k8s.io
+#   - xlistenersets.gateway.networking.x-k8s.io
 #
 traefik_gateway_api_crds: "none"
 
