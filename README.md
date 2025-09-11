@@ -39,48 +39,84 @@ See full [CHANGELOG.md](https://github.com/githubixx/ansible-role-traefik-kubern
 
 **Recent changes:**
 
-## 8.0.0+33.2.1
+## 9.0.0+37.1.1
 
-### Important notes for Traefik Helm chart v33.2.1
+### Important notes for Traefik Helm chart v37.1.1
 
-There were quite some changes in regards to Kubernetes Gateway API since the last upgrade. If you haven't used Gateway API resources so far, upgrading shouldn't be that much of an issue. But if you do, please read the changelogs before upgrading!
+This update contains a rather big update of the Traefik Helm chart from v33.2.1 to v37.1.1. Please check [Traefik Proxy Helm Chart](https://github.com/traefik/traefik-helm-chart/releases) for potential breaking changes. The following topics mentions changes to this Ansible role because of changes in the Traefik Helm Chart, mentions potential critical changes and contains links to the release pages. If you want to make sure to not miss any changes please read the [Traefik v3 minor migrations](https://doc.traefik.io/traefik/migrate/v3/) page and the release notes!
 
-- [Traefik Helm chart v32.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v32.0.0)
-- [Traefik Helm chart v33.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v33.0.0)
-- [gateway-api v1.2.0](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.2.0): In case you're using Kubernetes [Gateway API](https://github.com/kubernetes-sigs/gateway-api/) resources, CRDs will no longer serve the `v1alpha2` versions of `GRPCRoute` and `ReferenceGrant`. So make sure you upgrade that resources to `v1` before the upgrade.
-- Kubernetes Gateway Provider Experimental Channel: Because of a breaking change introduced in Kubernetes Gateway API [v1.2.0-rc1](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.2.0-rc1), Traefik v3.2 only supports Kubernetes Gateway v1.2.x when experimental channel features are enabled (set variable `traefik_gateway_api_crds` to `experimental`).
-- See [Gateway API v1.2 upgrade nodes](https://gateway-api.sigs.k8s.io/guides/#v12-upgrade-notes)
-- See [Gateway API v1.1 upgrade nodes](https://gateway-api.sigs.k8s.io/guides/#v11-upgrade-notes)
+#### v34.0.0
 
-If you're using the default values file `templates/traefik_values_default.yml.j2` of this role then the `traefik` endpoint stays on port `9000`. The changelog of the Helm chart `v33.0.0` mentions that the default has changed to port `8080`. So if you have your own values file this is something do check!
+- [Traefik Helm chart v34.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v34.0.0)
+  - When using `namespaceOverride`, the label selector will be changed. On a production environment, it's recommended to deploy a new instance with the new version, switch the traffic to it and delete the previous one. See [PR 1290](https://github.com/traefik/traefik-helm-chart/pull/1290) for more information.
+  - `ports.x.redirectTo` has been refactored to be aligned with upstream syntax. See [PR 1301](https://github.com/traefik/traefik-helm-chart/pull/1301) for a complete before / after example.
 
-Also the following (potential) breaking changes are mentioned in the [changelog of Traefik Helm chart v33.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v33.0.0):
+#### v35.0.0
 
-- `publishedService` is enabled by default on Ingress provider
-- The `POD_NAME` and `POD_NAMESPACE` environment variables are now set by default, without values.
-- In values, `certResolvers` specific syntax has been [reworked](https://github.com/traefik/traefik-helm-chart/pull/1214) to align with Traefik Proxy syntax.
-- Traefik Proxy 3.2 supports Gateway API v1.2 (standard channel)
+- [Traefik Helm chart v35.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v35.0.0)
+  - This release has been marked as major as it might [modify service and deployment port names](https://github.com/traefik/traefik-helm-chart/pull/1363) (if they use uppercase characters or are longer than 15 characters). Nevertheless, even in these cases, it should not impact the availability of your endpoints.
+  - If you're a Traefik-Hub user read [v35.1.0 changelog](https://github.com/traefik/traefik-helm-chart/releases/tag/v35.1.0)
 
-Breaking changes mentioned in [changelog of Traefik Helm chart v32.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v32.0.0):
+#### v36.0.0
 
-- There is a breaking change on how Redis is configured
+- [Traefik Helm chart v36.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v36.0.0)
 
-### Important changes regarding gateway-api in 8.0.0+33.2.1
+  - There was a change [fix(Traefik Proxy)!: strict opt-in on data collection](https://github.com/traefik/traefik-helm-chart/pull/1436). That means in [templates/traefik_values_default.yml.j2](https://github.com/githubixx/ansible-role-traefik-kubernetes/blob/ae50810f0c999e5b9472946c7fd86e7c4a3f963b/templates/traefik_values_default.yml.j2) a change was needed. The key `globalArguments` was replaced by `global` and the format now looks like this:
 
-As mentioned above in Gateway API v1.2.0 some breaking changes were introduced which should make future upgrades easier. But at least currently these changes are introducing more headache IMHO esp. if one needs to upgrade existing Gateway API resources.
+    ```yaml
+    global:
+      checkNewVersion: false
+      sendAnonymousUsage: false
+    ```
 
-To reflect these changes, setting the variable `traefik_install_crds` to `true` no longer installs `*.gateway.networking.k8s.io` CRDs! To install these CRDs set Ansible variable `traefik_gateway_api_crds` to `standard` or `experimental` (see `defaults/main.yaml` for more information regarding Gateway API CRD settings). If you already using Gateway API resources since earlier versions it might make sense to use the `experimental` channel for now (see [Gateway API v1.1 upgrade nodes](https://gateway-api.sigs.k8s.io/guides/#v11-upgrade-notes) for more information on switching from `experimental` to `standard` channel later).
+    Also see [Data Collection](https://doc.traefik.io/traefik/contributing/data-collection/) and [Traefik Helm chart v36.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v36.0.0)
 
-### Other changes in 8.0.0+33.2.1
+#### v37.0.0
 
-- update Traefik from version `3.1.5` to `3.2.3`
+- [Traefik Helm chart v37.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v37.0.0)
+  - feat(gateway-api)!: [support selector for namespace policy](https://github.com/traefik/traefik-helm-chart/pull/1465). The current helm chart only supports enabling the Gateway for the same namespace as the gateway API or all namespaces. This change gives more flexibility to specify allowed namespaces based on a selector.
+
+### Important upgrade notes for Traefik v3.2.3 to v3.5.2
+
+- [Traefik v3.2 to v3.3 upgrade notes](https://doc.traefik.io/traefik/migrate/v3/#v32-to-v33)
+- [Traefik v3.3.4 upgrade notes](https://doc.traefik.io/traefik/migrate/v3/#v334)
+- [Traefik v3.3.5 upgrade notes](https://doc.traefik.io/traefik/migrate/v3/#v335)
+- [Traefik v3.3.6 upgrade notes](https://doc.traefik.io/traefik/migrate/v3/#v336)
+  - Starting with v3.3.6, incoming request paths are now automatically cleaned before processing for security and consistency. The following path segments are now interpreted and collapsed:
+    - `/../` (parent directory references)
+    - `/./` (current directory references)
+    - Duplicate slash segments (`//`)
+    - **Example Risk:** Base64 data containing `/` characters can lead to unsafe routing when path sanitization is disabled and the data isn't URL-encoded.
+- [Traefik v3.3 to v3.4 upgrade notes](https://doc.traefik.io/traefik/migrate/v3/#v33-to-v34)
+  - The `RoundRobin` strategy is deprecated but still supported (equivalent to `wrr`). It will be removed in the next major release. New Strategy Values: `wrr` (Weighted Round Robin) / `p2c` (Power of Two Choices)
+  - A new `rootCAs` option has been added to the `ServersTransport` and `ServersTransportTCP` CRDs. The `rootCAsSecrets` option (Secrets only) is still supported but deprecated. It will be removed in the next major release.
+  - In v3.4, rule syntax configuration options will be removed in the next major version. These options were transitional helpers for migrating from v2 to v3 syntax. Please ensure all router rules use v3 syntax before the next major release. Deprecated Options:
+    - `core.defaultRuleSyntax` (static configuration)
+    - `ruleSyntax` (router option)
+- [Traefik v3.4.1 upgrade notes](https://doc.traefik.io/traefik/migrate/v3/#v341)
+  - Please read about [Request Path Normalization](https://doc.traefik.io/traefik/migrate/v3/#request-path-normalization) and [Reserved Character Handling in Routing](https://doc.traefik.io/traefik/migrate/v3/#reserved-character-handling-in-routing) behavior changes in v3.4.1!
+- [Traefik v3.4.5 upgrade notes](https://doc.traefik.io/traefik/migrate/v3/#v345)
+  - Since v3.4.5, the MultiPath TCP support introduced with v3.4.2 has been removed.
+- [Traefik v3.5.0 upgrade notes](https://doc.traefik.io/traefik/migrate/v3/#v350)
+- [Traefik v3.5.2 upgrade notes](https://doc.traefik.io/traefik/migrate/v3/#v352)
+  - Starting with v3.5.2, the `proxyProtocol` option for TCP LoadBalancer is deprecated. This option can now be configured at the `TCPServersTransport` level, please check out the [documentation](https://doc.traefik.io/traefik/reference/routing-configuration/tcp/serverstransport/) for more details.
+
+### Other changes in 9.0.0+37.1.1
+
+- update Traefik from version `3.2.3` to `3.5.2`
 - update Custom Resource Definitions (CRDs)
+
+### Further reading
+
+- [Traefik Proxy v3.3 - Nectaire of the Gods](https://traefik.io/blog/traefik-proxy-v3-3-nectaire-of-the-gods)
+- [Traefik Proxy v3.4 - Chaource Is Ready to Serve](https://traefik.io/blog/traefik-proxy-3-4-chaource-is-ready-to-serve)
+- [Traefik Proxy v3.5 - Chabichou: A Delicate Masterpiece](https://traefik.io/blog/traefik-proxy-v3-5)
 
 ## Role Variables
 
 ```yaml
 # Helm chart version
-traefik_chart_version: "37.1.0"
+traefik_chart_version: "37.1.1"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -248,9 +284,9 @@ additionalArguments:
 # First one disables periodical check if a new version has been released.
 #
 # Second one disables anonymous usage statistics. 
-globalArguments:
-  - "--global.checknewversion=false"
-  - "--global.sendanonymoususage=false"
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
 
 # This creates the Traefik deployment. As "DaemonSet" is specified here
 # this will create a Traefik instance on all Kubernetes worker nodes. If
@@ -294,7 +330,11 @@ ports:
     expose:
       default: true
     protocol: TCP
-    # redirectTo: websecure
+    #redirections:
+    #  entryPoint:
+    #    to: websecure
+    #    scheme: https
+    #    permanent: true
   # Entry point for HTTPS traffic.
   websecure:
     port: 30443
