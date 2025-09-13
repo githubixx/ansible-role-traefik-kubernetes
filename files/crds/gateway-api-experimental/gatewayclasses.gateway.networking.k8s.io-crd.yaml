@@ -6,7 +6,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/3328
-    gateway.networking.k8s.io/bundle-version: v1.2.0
+    gateway.networking.k8s.io/bundle-version: v1.3.0
     gateway.networking.k8s.io/channel: experimental
   creationTimestamp: null
   name: gatewayclasses.gateway.networking.k8s.io
@@ -241,7 +241,7 @@ spec:
                 - type
                 x-kubernetes-list-type: map
               supportedFeatures:
-                description: |
+                description: |-
                   SupportedFeatures is the set of features the GatewayClass support.
                   It MUST be sorted in ascending alphabetical order by the Name key.
                 items:
@@ -485,7 +485,7 @@ spec:
                 - type
                 x-kubernetes-list-type: map
               supportedFeatures:
-                description: |
+                description: |-
                   SupportedFeatures is the set of features the GatewayClass support.
                   It MUST be sorted in ascending alphabetical order by the Name key.
                 items:

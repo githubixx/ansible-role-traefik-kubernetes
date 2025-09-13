@@ -14,7 +14,7 @@ core:
 image:
   registry: docker.io
   repository: traefik
-  tag: "3.2.3"
+  tag: "3.5.2"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
@@ -37,9 +37,9 @@ additionalArguments:
 # First one disables periodical check if a new version has been released.
 #
 # Second one disables anonymous usage statistics. 
-globalArguments:
-  - "--global.checknewversion=false"
-  - "--global.sendanonymoususage=false"
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
 
 # This creates the Traefik deployment. As "DaemonSet" is specified here
 # this will create a Traefik instance on all Kubernetes worker nodes. If
@@ -66,7 +66,7 @@ ports:
     protocol: TCP
     expose:
       default: false
-  # Unsecured incoming HTTP traffic. If you uncomment "redirectTo: websecure"
+  # Unsecured incoming HTTP traffic. If you uncomment "redirections" block
   # all traffic that arrives at this port will be redirected to "websecure"
   # entry point which means to the entry point that handles secure HTTPS traffic.
   # But be aware that this could be problematic for cert-manager.
@@ -83,7 +83,11 @@ ports:
     expose:
       default: true
     protocol: TCP
-    # redirectTo: websecure
+    #redirections:
+    #  entryPoint:
+    #    to: websecure
+    #    scheme: https
+    #    permanent: true
   # Entry point for HTTPS traffic.
   websecure:
     port: 30443
@@ -118,8 +122,8 @@ gateway:
       # See [ProtocolType](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.ProtocolType)
       #protocol: HTTPS
       # Routes are restricted to namespace of the gateway
-      # [by default](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.FromNamespaces)
-      #namespacePolicy
+      # See [by default](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.FromNamespaces)
+      #namespacePolicy:
       # Add certificates for TLS or HTTPS protocols. This value must be specified
       # if "gateway.enabled: true" and "gateway.listeners.websecure" is defined!
       # See [GatewayTLSConfig](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io%2fv1.GatewayTLSConfig)

@@ -1,6 +1,6 @@
 ---
 # Helm chart version
-traefik_chart_version: "33.2.1"
+traefik_chart_version: "37.1.1"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -94,7 +94,6 @@ traefik_install_crds: false
 # channel is used. The "experimental" channel installs the following
 # additional CRDs:
 #
-#   - backendlbpolicies.gateway.networking.k8s.io
 #   - backendtlspolicies.gateway.networking.k8s.io
 #   - gatewayclasses.gateway.networking.k8s.io
 #   - gateways.gateway.networking.k8s.io
@@ -104,6 +103,8 @@ traefik_install_crds: false
 #   - tcproutes.gateway.networking.k8s.io
 #   - tlsroutes.gateway.networking.k8s.io
 #   - udproutes.gateway.networking.k8s.io
+#   - xbackendtrafficpolicies.gateway.networking.x-k8s.io
+#   - xlistenersets.gateway.networking.x-k8s.io
 #
 traefik_gateway_api_crds: "none"
 
