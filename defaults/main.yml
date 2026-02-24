@@ -1,6 +1,6 @@
 ---
 # Helm chart version
-traefik_chart_version: "37.1.1"
+traefik_chart_version: "39.0.2"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -47,7 +47,6 @@ traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"
 # The following CRDs will be installed:
 #
 #   - accesscontrolpolicies.hub.traefik.io
-#   - apiaccesses.hub.traefik.io
 #   - apiportals.hub.traefik.io
 #   - apiratelimits.hub.traefik.io
 #   - apis.hub.traefik.io
@@ -80,6 +79,7 @@ traefik_install_crds: false
 #
 # "standard" will install the following CRDs and it's stable versions:
 #
+#   - backendtlspolicies.gateway.networking.k8s.io
 #   - gatewayclasses.gateway.networking.k8s.io
 #   - gateways.gateway.networking.k8s.io
 #   - grpcroutes.gateway.networking.k8s.io
@@ -105,8 +105,23 @@ traefik_install_crds: false
 #   - udproutes.gateway.networking.k8s.io
 #   - xbackendtrafficpolicies.gateway.networking.x-k8s.io
 #   - xlistenersets.gateway.networking.x-k8s.io
+#   - xmeshes.gateway.networking.x-k8s.io
 #
 traefik_gateway_api_crds: "none"
+
+# Specifies which Knative Serving CRDs (CustomResourceDefinitions) should
+# be installed. This setting is about installing Knative Serving CRDs that
+# are needed when Traefik is used with Knative.
+#
+# By default this setting is "none" which means no Knative CRDs will be
+# installed.
+#
+# Available values:
+#
+#   - "none": no Knative CRDs are installed
+#   - "serving": install Knative Serving CRDs
+#
+traefik_knative_crds: "none"
 
 # By default all tasks that needs to communicate with the Kubernetes
 # cluster are executed on your local host (127.0.0.1). But if that one
