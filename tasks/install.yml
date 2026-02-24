@@ -14,7 +14,7 @@
       delegate_to: "{{ traefik_delegate_to }}"
       run_once: true
       when:
-        - traefik_install_crds
+        - traefik_install_crds | bool
 
     - name: Install Gateway API CRDs
       kubernetes.core.k8s:
@@ -25,8 +25,7 @@
       delegate_to: "{{ traefik_delegate_to }}"
       run_once: true
       when:
-        - traefik_gateway_api_crds
-        - traefik_gateway_api_crds != "none"
+        - traefik_gateway_api_crds | default("none") != "none"
 
     - name: Create temporary file for Helm values
       ansible.builtin.tempfile:
