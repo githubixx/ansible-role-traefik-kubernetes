@@ -14,7 +14,7 @@
       delegate_to: "{{ traefik_delegate_to }}"
       run_once: true
       when:
-        - traefik_install_crds
+        - traefik_install_crds | bool
 
     - name: Install Gateway API CRDs
       kubernetes.core.k8s:
@@ -25,8 +25,29 @@
       delegate_to: "{{ traefik_delegate_to }}"
       run_once: true
       when:
-        - traefik_gateway_api_crds
-        - traefik_gateway_api_crds != "none"
+        - traefik_gateway_api_crds | default("none") != "none"
+
+    - name: Install Knative CRDs
+      ansible.builtin.find:
+        paths: "{{ role_path }}/files/crds/knative-{{ traefik_knative_crds }}"
+        patterns: "*.yaml"
+        file_type: file
+      register: traefik__knative_crd_files
+      delegate_to: localhost
+      run_once: true
+      when:
+        - traefik_knative_crds | default("none") != "none"
+
+    - name: Install Knative CRDs
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', item) | from_yaml_all | list }}"
+      loop: "{{ traefik__knative_crd_files.files | map(attribute='path') | list }}"
+      delegate_to: "{{ traefik_delegate_to }}"
+      run_once: true
+      when:
+        - traefik__knative_crd_files is defined
+        - (traefik__knative_crd_files.matched | default(0) | int) > 0
 
     - name: Create temporary file for Helm values
       ansible.builtin.tempfile:

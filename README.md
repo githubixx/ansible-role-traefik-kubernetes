@@ -15,7 +15,7 @@ For further information about the Helm chart settings see below.
 
 ## Versions
 
-I tag every release and try to stay with [semantic versioning](http://semver.org). If you want to use the role I recommend to checkout the latest tag. The master branch is basically development while the tags mark stable releases. But in general I try to keep master in good shape too. A tag `8.0.0+33.2.1` means this is release `8.0.0` of this role and it uses Helm chart version `33.2.1` (the `Traefik` version used is specified in the values file [see below]). If the role itself changes `X.Y.Z` before `+` will increase. If the Traefik chart version changes `X.Y.Z` after `+` will increase too. This allows to tag bugfixes and new major versions of the role while it's still developed for a specific Traefik release.
+I tag every release and try to stay with [semantic versioning](http://semver.org). If you want to use the role I recommend to checkout the latest tag. The master branch is basically development while the tags mark stable releases. But in general I try to keep master in good shape too. A tag `10.0.0+39.0.2` means this is release `10.0.0` of this role and it uses Helm chart version `39.0.2` (the `Traefik` version used is specified in the values file [see below]). If the role itself changes `X.Y.Z` before `+` will increase. If the Traefik chart version changes `X.Y.Z` after `+` will increase too. This allows to tag bugfixes and new major versions of the role while it's still developed for a specific Traefik release.
 
 ## Requirements
 
@@ -38,6 +38,79 @@ And of course you need a Kubernetes Cluster ;-)
 See full [CHANGELOG.md](https://github.com/githubixx/ansible-role-traefik-kubernetes/blob/master/CHANGELOG.md)
 
 **Recent changes:**
+
+## 10.0.0+39.0.2
+
+### Important notes for Traefik Helm chart v39.0.2
+
+This update contains a major Traefik Helm chart upgrade from v37.1.1 to v39.0.2. Please check [Traefik Proxy Helm Chart](https://github.com/traefik/traefik-helm-chart/releases) for potentially breaking changes.
+
+#### v38.0.0
+
+- [Traefik Helm chart v38.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v38.0.0)
+  - **CRDs must be upgraded before the chart upgrade.** (handled by this role by default)
+  - Traefik v3.6.4 introduced request path encoded character hardening options and changed behavior. See [Traefik migration notes v3.6.4](https://doc.traefik.io/traefik/v3.6/migrate/v3/#v364).
+  - `kubernetesIngressNginx` provider settings were aligned with upstream syntax and required RBAC updates.
+
+#### v39.0.0
+
+- [Traefik Helm chart v39.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v39.0.0)
+  - **Schema validation is now enforced**. Unknown or no longer supported values will fail rendering/installation.
+  - **Breaking:** EntryPoint HTTP options require explicit `http` nesting under `ports` (see [PR 1603 - entrypoints http options](https://github.com/traefik/traefik-helm-chart/pull/1603)).
+  - Encoded character defaults changed with Traefik v3.6.7+ (now allow by default unless explicitly restricted).
+  - For Traefik Hub users: this chart supports Hub v3.19.0+.
+
+### Important upgrade notes for Traefik v3.5.2 to v3.6.9
+
+- [Traefik v3.6.0 upgrade notes](https://doc.traefik.io/traefik/v3.6/migrate/v3/#v360)
+  - Gateway API provider supports Gateway API v1.4.0; Gateway API CRDs should be updated accordingly.
+- [Traefik v3.6.2 upgrade notes](https://doc.traefik.io/traefik/v3.6/migrate/v3/#v362)
+  - KubernetesIngressNGINX provider is no longer experimental. The related experimental flag is deprecated.
+- [Traefik v3.6.4 upgrade notes](https://doc.traefik.io/traefik/v3.6/migrate/v3/#v364)
+  - Encoded character path handling changed for security reasons.
+- [Traefik v3.6.7 upgrade notes](https://doc.traefik.io/traefik/v3.6/migrate/v3/#v367)
+  - Encoded character options became opt-in hardening (`true` by default).
+- [Traefik v3.6.8 upgrade notes](https://doc.traefik.io/traefik/v3.6/migrate/v3/#v368)
+  - Healthcheck request path validation was tightened (must be relative URL).
+- [Traefik v3.6.9 upgrade notes](https://doc.traefik.io/traefik/v3.6/migrate/v3/#v369)
+  - `ForwardAuth` added `maxResponseBodySize`; using it with Kubernetes CRDs requires updated Traefik CRDs.
+
+### Other changes in 10.0.0+39.0.2
+
+- update Traefik from version `3.5.2` to `3.6.9`
+- update Traefik Helm chart from version `37.1.1` to `39.0.2`
+- update bundled Traefik and Hub CRDs to chart `v39.0.2`
+- update bundled Gateway API CRDs from `v1.3.0` to `v1.4.0`
+  - standard channel now also includes `backendtlspolicies.gateway.networking.k8s.io`
+  - experimental channel now also includes `xmeshes.gateway.networking.x-k8s.io`
+- remove bundled `apiaccesses.hub.traefik.io` CRD to match upstream chart CRD set
+- add optional Knative Serving CRD installation (`traefik_knative_crds: "serving"`)
+- as mentioned above EntryPoint HTTP options require explicit `http` nesting under `ports`. E.g.:
+
+  ```yaml
+  websecure:
+    port: 30443
+    hostPort: 443
+    expose:
+      default: true
+    protocol: TCP
+    tls:
+      enabled: true
+  ```
+
+  becomes
+
+  ```yaml
+  websecure:
+    port: 30443
+    hostPort: 443
+    expose:
+      default: true
+    protocol: TCP
+    http:
+      tls:
+        enabled: true
+  ```
 
 ## 9.0.0+37.1.1
 
@@ -117,7 +190,7 @@ This update contains a rather big update of the Traefik Helm chart from v33.2.1 
 
 ```yaml
 # Helm chart version
-traefik_chart_version: "37.1.1"
+traefik_chart_version: "39.0.2"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -164,7 +237,6 @@ traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"
 # The following CRDs will be installed:
 #
 #   - accesscontrolpolicies.hub.traefik.io
-#   - apiaccesses.hub.traefik.io
 #   - apiportals.hub.traefik.io
 #   - apiratelimits.hub.traefik.io
 #   - apis.hub.traefik.io
@@ -197,6 +269,7 @@ traefik_install_crds: false
 #
 # "standard" will install the following CRDs:
 #
+#   - backendtlspolicies.gateway.networking.k8s.io
 #   - gatewayclasses.gateway.networking.k8s.io
 #   - gateways.gateway.networking.k8s.io
 #   - grpcroutes.gateway.networking.k8s.io
@@ -222,8 +295,23 @@ traefik_install_crds: false
 #   - udproutes.gateway.networking.k8s.io
 #   - xbackendtrafficpolicies.gateway.networking.x-k8s.io
 #   - xlistenersets.gateway.networking.x-k8s.io
+#   - xmeshes.gateway.networking.x-k8s.io
 #
 traefik_gateway_api_crds: "none"
+
+# Specifies which Knative Serving CRDs (CustomResourceDefinitions) should
+# be installed. This setting is about installing Knative Serving CRDs that
+# are needed when Traefik is used with Knative.
+#
+# By default this setting is "none" which means no Knative CRDs will be
+# installed.
+#
+# Available values:
+#
+#   - "none": no Knative CRDs are installed
+#   - "serving": install Knative Serving CRDs
+#
+traefik_knative_crds: "none"
 
 # By default all tasks that needs to communicate with the Kubernetes
 # cluster are executed on your local host (127.0.0.1). But if that one
@@ -263,7 +351,7 @@ core:
 image:
   registry: docker.io
   repository: traefik
-  tag: "3.5.2"
+  tag: "3.6.9"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
@@ -344,8 +432,9 @@ ports:
     expose:
       default: true
     protocol: TCP
-    tls:
-      enabled: true
+    http:
+      tls:
+        enabled: true
 
 # When providers.kubernetesGateway.enabled, deploy a default gateway
 gateway:

@@ -1,5 +1,78 @@
 # Changelog
 
+## 10.0.0+39.0.2
+
+### Important notes for Traefik Helm chart v39.0.2
+
+This update contains a major Traefik Helm chart upgrade from v37.1.1 to v39.0.2. Please check [Traefik Proxy Helm Chart](https://github.com/traefik/traefik-helm-chart/releases) for potentially breaking changes.
+
+#### v38.0.0
+
+- [Traefik Helm chart v38.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v38.0.0)
+  - **CRDs must be upgraded before the chart upgrade.** (handled by this role by default)
+  - Traefik v3.6.4 introduced request path encoded character hardening options and changed behavior. See [Traefik migration notes v3.6.4](https://doc.traefik.io/traefik/v3.6/migrate/v3/#v364).
+  - `kubernetesIngressNginx` provider settings were aligned with upstream syntax and required RBAC updates.
+
+#### v39.0.0
+
+- [Traefik Helm chart v39.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v39.0.0)
+  - **Schema validation is now enforced**. Unknown or no longer supported values will fail rendering/installation.
+  - **Breaking:** EntryPoint HTTP options require explicit `http` nesting under `ports` (see [PR 1603 - entrypoints http options](https://github.com/traefik/traefik-helm-chart/pull/1603)).
+  - Encoded character defaults changed with Traefik v3.6.7+ (now allow by default unless explicitly restricted).
+  - For Traefik Hub users: this chart supports Hub v3.19.0+.
+
+### Important upgrade notes for Traefik v3.5.2 to v3.6.9
+
+- [Traefik v3.6.0 upgrade notes](https://doc.traefik.io/traefik/v3.6/migrate/v3/#v360)
+  - Gateway API provider supports Gateway API v1.4.0; Gateway API CRDs should be updated accordingly.
+- [Traefik v3.6.2 upgrade notes](https://doc.traefik.io/traefik/v3.6/migrate/v3/#v362)
+  - KubernetesIngressNGINX provider is no longer experimental. The related experimental flag is deprecated.
+- [Traefik v3.6.4 upgrade notes](https://doc.traefik.io/traefik/v3.6/migrate/v3/#v364)
+  - Encoded character path handling changed for security reasons.
+- [Traefik v3.6.7 upgrade notes](https://doc.traefik.io/traefik/v3.6/migrate/v3/#v367)
+  - Encoded character options became opt-in hardening (`true` by default).
+- [Traefik v3.6.8 upgrade notes](https://doc.traefik.io/traefik/v3.6/migrate/v3/#v368)
+  - Healthcheck request path validation was tightened (must be relative URL).
+- [Traefik v3.6.9 upgrade notes](https://doc.traefik.io/traefik/v3.6/migrate/v3/#v369)
+  - `ForwardAuth` added `maxResponseBodySize`; using it with Kubernetes CRDs requires updated Traefik CRDs.
+
+### Other changes in 10.0.0+39.0.2
+
+- update Traefik from version `3.5.2` to `3.6.9`
+- update Traefik Helm chart from version `37.1.1` to `39.0.2`
+- update bundled Traefik and Hub CRDs to chart `v39.0.2`
+- update bundled Gateway API CRDs from `v1.3.0` to `v1.4.0`
+  - standard channel now also includes `backendtlspolicies.gateway.networking.k8s.io`
+  - experimental channel now also includes `xmeshes.gateway.networking.x-k8s.io`
+- remove bundled `apiaccesses.hub.traefik.io` CRD to match upstream chart CRD set
+- add optional Knative Serving CRD installation (`traefik_knative_crds: "serving"`)
+- as mentioned above EntryPoint HTTP options require explicit `http` nesting under `ports`. E.g.:
+
+  ```yaml
+  websecure:
+    port: 30443
+    hostPort: 443
+    expose:
+      default: true
+    protocol: TCP
+    tls:
+      enabled: true
+  ```
+
+  becomes
+
+  ```yaml
+  websecure:
+    port: 30443
+    hostPort: 443
+    expose:
+      default: true
+    protocol: TCP
+    http:
+      tls:
+        enabled: true
+  ```
+
 ## 9.0.0+37.1.1
 
 ### Important notes for Traefik Helm chart v37.1.1

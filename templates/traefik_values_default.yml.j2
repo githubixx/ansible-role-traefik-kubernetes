@@ -14,7 +14,7 @@ core:
 image:
   registry: docker.io
   repository: traefik
-  tag: "3.5.2"
+  tag: "3.6.9"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
@@ -95,8 +95,9 @@ ports:
     expose:
       default: true
     protocol: TCP
-    tls:
-      enabled: true
+    http:
+      tls:
+        enabled: true
 
 # When providers.kubernetesGateway.enabled, deploy a default gateway
 gateway:
