@@ -66,6 +66,8 @@ ports:
     protocol: TCP
     expose:
       default: false
+    http:
+      aliasHeadersStrategy: delete
   # Unsecured incoming HTTP traffic. If you uncomment "redirections" block
   # all traffic that arrives at this port will be redirected to "websecure"
   # entry point which means to the entry point that handles secure HTTPS traffic.
@@ -94,6 +96,8 @@ ports:
     expose:
       default: true
     protocol: TCP
+    http:
+      aliasHeadersStrategy: delete
     #redirections:
     #  entryPoint:
     #    to: websecure
@@ -107,8 +111,15 @@ ports:
       default: true
     protocol: TCP
     http:
+      aliasHeadersStrategy: delete
       tls:
         enabled: true
+
+  # The chart enables the metrics entry point by default, without exposing
+  # it through a Service. Keep its other chart defaults unchanged.
+  metrics:
+    http:
+      aliasHeadersStrategy: delete
 
 # When providers.kubernetesGateway.enabled, deploy a default gateway
 gateway:

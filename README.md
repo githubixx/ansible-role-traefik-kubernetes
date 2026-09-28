@@ -91,6 +91,7 @@ Review the [Traefik v3.7 migration notes](https://doc.traefik.io/traefik/v3.7/mi
 - update optional Gateway API standard and experimental CRDs to `v1.6.1`
   - standard now includes `ListenerSet` and TCP, TLS, and UDP routes
   - experimental replaces `XListenerSet` with `ListenerSet` and includes `XBackendTrafficPolicy` and `XMesh`
+- set `http.aliasHeadersStrategy: delete` on all four default entry points (`traefik`, `web`, `websecure`, `metrics`). Headers with names containing characters other than letters, digits, or dashes are dropped before routing; applications relying on those headers should use dash-only names or custom values. See [Traefik's header-alias guidance](https://doc.traefik.io/traefik/v3.7/security/header-aliases/).
 - add `changed_when` to `tasks/(install|template|upgrade).yml` where needed to make tasks idempotent
 - Molecule: add more tests to `verify.yml` / update `molecule.yml`
 

@@ -30,7 +30,7 @@
         that:
           - (traefik__daemonset_info.resources[0].status.numberReady | default(0) | int) >= 1
 
-    - name: Verify Traefik image, ports and logging
+    - name: Verify Traefik image, ports, logging and header handling
       ansible.builtin.assert:
         that:
           - traefik__container.image == "docker.io/traefik:3.7.13"
@@ -38,6 +38,10 @@
           - (traefik__container.ports | selectattr('name', 'equalto', 'websecure') | map(attribute='hostPort') | first) == 443
           - "'--accesslog=true' in traefik__container.args"
           - "'--entryPoints.websecure.http.tls=true' in traefik__container.args"
+          - "'--entryPoints.traefik.http.aliasHeadersStrategy=delete' in traefik__container.args"
+          - "'--entryPoints.web.http.aliasHeadersStrategy=delete' in traefik__container.args"
+          - "'--entryPoints.websecure.http.aliasHeadersStrategy=delete' in traefik__container.args"
+          - "'--entryPoints.metrics.http.aliasHeadersStrategy=delete' in traefik__container.args"
       vars:
         traefik__container: "{{ traefik__daemonset_info.resources[0].spec.template.spec.containers[0] }}"
 
