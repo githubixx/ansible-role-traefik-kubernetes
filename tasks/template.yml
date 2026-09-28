@@ -12,6 +12,7 @@
       delegate_to: "{{ traefik_delegate_to }}"
       run_once: true
       register: traefik__values_tmp_file
+      changed_when: false
 
     - name: Select values file for Helm template
       ansible.builtin.template:
@@ -20,6 +21,7 @@
         mode: "0600"
       delegate_to: "{{ traefik_delegate_to }}"
       run_once: true
+      changed_when: false
       vars:
         params:
           files:
@@ -58,6 +60,7 @@
         state: absent
       run_once: true
       delegate_to: "{{ traefik_delegate_to }}"
+      changed_when: false
       when: traefik__values_tmp_file.path is defined
 
     - name: Create directory to store template.yml
