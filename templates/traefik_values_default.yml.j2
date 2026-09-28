@@ -14,7 +14,7 @@ core:
 image:
   registry: docker.io
   repository: traefik
-  tag: "3.6.9"
+  tag: "3.7.13"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
@@ -152,11 +152,10 @@ podSecurityContext:
   fsGroup: 65532
 
 # Set log level of general log and enable access log.
-logs:
-  general:
-    level: INFO
-  access:
-    enabled: true
+log:
+  level: INFO
+accessLog:
+  enabled: true
 
 # As Traefik web/websecure ports are exposed by "hostPort" a service isn't
 # needed.
