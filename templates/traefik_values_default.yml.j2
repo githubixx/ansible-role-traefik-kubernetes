@@ -77,6 +77,17 @@ ports:
   # Internet (what you normally want in case of Traefik ;-) ) For other
   # options see link above. These settings are useful for baremetal or
   # on-premise solutions with no further loadbalancer.
+  #
+  # The web and websecure entry points leave http.encodedCharacters unset.
+  # Traefik 3.7 allows encoded reserved characters in request paths by
+  # default and logs a warning about backends that may interpret them
+  # differently. This preserves compatibility; the warning is expected.
+  # For stricter handling, set ports.web.http.encodedCharacters and
+  # ports.websecure.http.encodedCharacters in custom values, or use an
+  # EncodedCharacters middleware on affected routes. Setting an
+  # allowEncoded* option to false rejects matching paths with HTTP 400
+  # and may break valid application URLs. See:
+  # https://doc.traefik.io/traefik/v3.7/reference/routing-configuration/http/middlewares/encodedcharacters/
   web:
     port: 30080
     hostPort: 80
