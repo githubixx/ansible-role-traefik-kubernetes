@@ -29,6 +29,8 @@ A properly configured `KUBECONFIG` is also needed (which is located at `${HOME}/
 
 Additionally the Ansible `kubernetes.core` collection needs to be installed. This can be done by using the `collections.yml` file included in this role: `ansible-galaxy install -r collections.yml`.
 
+Helm chart 41.6.0 requires Kubernetes 1.25 or newer.
+
 And of course you need a Kubernetes Cluster ;-)
 
 ## Changelog
@@ -38,6 +40,59 @@ And of course you need a Kubernetes Cluster ;-)
 See full [CHANGELOG.md](https://github.com/githubixx/ansible-role-traefik-kubernetes/blob/master/CHANGELOG.md)
 
 **Recent changes:**
+
+## 11.0.0+41.6.0
+
+### Important notes for Traefik Helm chart v41.6.0
+
+This update contains a major Traefik Helm chart upgrade from v39.0.2 to v41.6.0. Please check the [Traefik Proxy Helm Chart releases](https://github.com/traefik/traefik-helm-chart/releases) for changes relevant to custom values files.
+
+#### v40.0.0
+
+- [Traefik Helm chart v40.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v40.0.0)
+  - Kubernetes 1.25 or newer is required.
+
+#### v40.2.0
+
+- [Traefik Helm chart v40.2.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v40.2.0)
+  - The chart no longer bundles Gateway API CRDs. Set `traefik_gateway_api_crds` to `standard` or `experimental` if this role should install them. With `none`, this role does not install them; externally managed CRDs are unaffected.
+
+#### v41.0.0
+
+- [Traefik Helm chart v41.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v41.0.0)
+  - Logging values changed from `logs.general` and `logs.access` to `log` and `accessLog`. The role's default values have been updated; custom values files may need the same change.
+  - File-provider content values also changed; the role's default values do not use them.
+
+### Important upgrade notes for Traefik v3.6.9 to v3.7.13
+
+Review the [Traefik v3.7 migration notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/) for changes relevant to your configuration. Here are some potentially important findings:
+
+- [Traefik v3.6.14 upgrade notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v3614)
+  - The [trustForwardHeader option](https://doc.traefik.io/traefik/v3.7/migrate/v3/#forwardauth-middleware-trustforwardheader) has been deprecated and will be removed in the next major version.
+- [Traefik v3.6.19 upgrade notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v3619)
+  - The StripPrefix middleware and the StripPrefixRegex middleware reject requests (400 Bad Request) when stripping the configured prefix produces a path that differs from its normalized form (i.e. a path containing . or .. segments that would be collapsed by normalization)
+- [Traefik v3.6.22 upgrade notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v3622)
+  - `underscoreHeadersStrategy` entry point option deprecated since v3.7.12. Please use the `aliasHeadersStrategy` option instead, which handles every aliasing character instead of the underscore only.
+- [Traefik v3.7.0 upgrade notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v370)
+  - Since v3.7.0, the [Host and HostSNI matchers](https://doc.traefik.io/traefik/v3.7/migrate/v3/#wildcard-host-and-hostsni) support wildcard subdomain matching (e.g., `*.example.com`).
+  - Since v3.7.0, [TLSOptions](https://doc.traefik.io/traefik/v3.7/migrate/v3/#tlsoptions-with-wildcard-domains) can now be associated with routers using wildcard Host and HostSNI matchers (e.g., `Host(*.example.com)`). This enables configuring different TLS options for wildcard domains.
+- [Traefik v3.7.7 upgrade notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v377)
+  - From version v3.7.7 onwards, the `Host` matcher treats a bare `*` as a catch-all, consistent with the TCP `HostSNI(*)` matcher. Host(`*`) now matches every request regardless of its host, including requests with no host at all.
+- [Traefik v3.7.10 upgrade notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v3710)
+  - Starting with v3.7.10, the Kubernetes Gateway API provider supports version [v1.6.1 of the specification](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.6.1).
+  - `TCPRoute` graduated to the Standard channel in Gateway API v1.6.0, with a new v1 version. Traefik v3.7 still watches `TCPRoute` through its `v1alpha2` version, which the Standard channel CRDs no longer serve.
+
+### Other changes in 11.0.0+41.6.0
+
+- update Traefik from version `3.6.9` to `3.7.13`
+- update Traefik Helm chart from version `39.0.2` to `41.6.0`
+- update bundled Traefik and Hub CRDs to chart `v41.6.0`
+  - Set `traefik_install_crds: true` to update these CRDs before upgrading the chart
+- update optional Gateway API standard and experimental CRDs to `v1.6.1`
+  - standard now includes `ListenerSet` and TCP, TLS, and UDP routes
+  - experimental replaces `XListenerSet` with `ListenerSet` and includes `XBackendTrafficPolicy` and `XMesh`
+- add `changed_when` to `tasks/(install|template|upgrade).yml` where needed to make tasks idempotent
+- Molecule: add more tests to `verify.yml` / update `molecule.yml`
 
 ## 10.0.0+39.0.2
 
@@ -190,7 +245,7 @@ This update contains a rather big update of the Traefik Helm chart from v33.2.1 
 
 ```yaml
 # Helm chart version
-traefik_chart_version: "39.0.2"
+traefik_chart_version: "41.6.0"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -231,16 +286,27 @@ traefik_default_path_matcher_syntax: "v3"
 # the values in "templates/traefik_values_default.yml.j2" by default.
 traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"
 
-# By default CRDs (CustomResourceDefinitions) are not installed. Set to
-# "true" if CRDs should be installed. Also see:
+# By default the role does not pre-apply Traefik/Hub CRDs. Set to "true"
+# to install or update them before the Helm chart. Helm installs missing
+# chart CRDs on a fresh install, but does not upgrade existing CRDs. See:
 # https://github.com/traefik/traefik-helm-chart/tree/master/traefik/crds
 # The following CRDs will be installed:
 #
 #   - accesscontrolpolicies.hub.traefik.io
+#   - aiservices.hub.traefik.io
+#   - apiauths.hub.traefik.io
+#   - apibundles.hub.traefik.io
+#   - apicatalogitems.hub.traefik.io
+#   - apiplans.hub.traefik.io
+#   - apiportalauths.hub.traefik.io
 #   - apiportals.hub.traefik.io
 #   - apiratelimits.hub.traefik.io
 #   - apis.hub.traefik.io
 #   - apiversions.hub.traefik.io
+#   - contentitems.hub.traefik.io
+#   - managedapplications.hub.traefik.io
+#   - managedsubscriptions.hub.traefik.io
+#   - uplinks.hub.traefik.io
 #   - ingressroutes.traefik.io
 #   - ingressroutetcps.traefik.io
 #   - ingressrouteudps.traefik.io
@@ -254,9 +320,8 @@ traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"
 #
 traefik_install_crds: false
 
-# Specifies which Gateway API CRDs (CustomResourceDefinitions) should
-# be installed. This setting is about installing "*.gateway.networking.k8s.io"
-# CRDs.
+# Specifies which bundled Gateway API CRDs should be installed before the
+# chart. Since chart 40.2.0 Helm does not install Gateway API CRDs itself.
 #
 # By default this setting is "none" which means no Gateway API CRDs will
 # be installed.
@@ -274,27 +339,17 @@ traefik_install_crds: false
 #   - gateways.gateway.networking.k8s.io
 #   - grpcroutes.gateway.networking.k8s.io
 #   - httproutes.gateway.networking.k8s.io
-#   - referencegrants.gateway.networking.k8s.io
-#
-# "experimental" will install the ones listed in "standard" plus a few
-# more. Please be aware that the "experimental" channel is subject to
-# change and might not be stable. That means that the CRDs might change
-# or be removed in future releases. So the CRDs listed above in "standard"
-# might also contain fields that are subject to change if the "experimental"
-# channel is used. The "experimental" channel installs the following
-# additional CRDs:
-#
-#   - backendtlspolicies.gateway.networking.k8s.io
-#   - gatewayclasses.gateway.networking.k8s.io
-#   - gateways.gateway.networking.k8s.io
-#   - grpcroutes.gateway.networking.k8s.io
-#   - httproutes.gateway.networking.k8s.io
+#   - listenersets.gateway.networking.k8s.io
 #   - referencegrants.gateway.networking.k8s.io
 #   - tcproutes.gateway.networking.k8s.io
 #   - tlsroutes.gateway.networking.k8s.io
 #   - udproutes.gateway.networking.k8s.io
+#
+# "experimental" installs the same CRD names as "standard" (with some
+# experimental fields), plus these experimental CRDs. Their schemas may
+# change or be removed in future releases:
+#
 #   - xbackendtrafficpolicies.gateway.networking.x-k8s.io
-#   - xlistenersets.gateway.networking.x-k8s.io
 #   - xmeshes.gateway.networking.x-k8s.io
 #
 traefik_gateway_api_crds: "none"
@@ -332,7 +387,7 @@ traefik_template_output_directory: "{{ '~/traefik/template' | expanduser }}"
 
 ## Usage
 
-The first thing to do is to check `templates/traefik_values_default.yml.j2`. This file contains the important values/settings for the Traefik Helm chart that are partly different to the default ones which are located [here](https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml). These are the default settings used:
+The first thing to do is to check `templates/traefik_values_default.yml.j2`. This file contains the important values/settings for the Traefik Helm chart that are partly different to the default ones in the [upstream chart values](https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml). These are the default settings used:
 
 ```yaml
 # All possible Helm chart values here can be found at:
@@ -351,7 +406,7 @@ core:
 image:
   registry: docker.io
   repository: traefik
-  tag: "3.6.9"
+  tag: "3.7.13"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
@@ -489,11 +544,10 @@ podSecurityContext:
   fsGroup: 65532
 
 # Set log level of general log and enable access log.
-logs:
-  general:
-    level: INFO
-  access:
-    enabled: true
+log:
+  level: INFO
+accessLog:
+  enabled: true
 
 # As Traefik web/websecure ports are exposed by "hostPort" a service isn't
 # needed.
@@ -540,7 +594,7 @@ ingressClass:
   isDefaultClass: true
 ```
 
-But nothing is made in stone. To use your own values just create a file called `values.yml.j2` or `values.yaml.j2` and put it into the directory specified in `traefik_chart_values_directory` (which is `$HOME/traefik/helm` by default). Then this role will use that file to render the Helm values. You can use `templates/traefik_values_default.yml.j2` as a template or just start from scratch. As mentioned above you can modify all settings for the Helm chart that are different to the default ones which are located [here](https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml).
+But nothing is made in stone. To use your own values just create a file called `values.yml.j2` or `values.yaml.j2` and put it into the directory specified in `traefik_chart_values_directory` (which is `$HOME/traefik/helm` by default). Then this role will use that file to render the Helm values. You can use `templates/traefik_values_default.yml.j2` as a template or just start from scratch. As mentioned above you can modify all settings for the Helm chart that are different to the [upstream chart values](https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml).
 
 After the values file is in place and the `defaults/main.yml` values are checked the role can be installed. Most of the role's tasks are executed locally so to say as quite a few tasks need to communicate with the Kubernetes API server or executing [Helm](https://helm.sh/) commands.
 
@@ -609,7 +663,7 @@ The host `traefik` in the example playbook is most probably just `localhost` spe
 
 ## Testing
 
-This role has a small test setup that is created using [Molecule](https://github.com/ansible-community/molecule), libvirt (vagrant-libvirt) and QEMU/KVM. Please see my blog post [Testing Ansible roles with Molecule, libvirt (vagrant-libvirt) and QEMU/KVM](https://www.tauceti.blog/posts/testing-ansible-roles-with-molecule-libvirt-vagrant-qemu-kvm/) how to setup. The test configuration is [here](https://github.com/githubixx/ansible-role-traefik-kubernetes/tree/master/molecule/default).
+This role has a small test setup that is created using [Molecule](https://github.com/ansible-community/molecule), libvirt (vagrant-libvirt) and QEMU/KVM. Please see my blog post [Testing Ansible roles with Molecule, libvirt (vagrant-libvirt) and QEMU/KVM](https://www.tauceti.blog/posts/testing-ansible-roles-with-molecule-libvirt-vagrant-qemu-kvm/) how to setup. See the [Molecule test configuration](https://github.com/githubixx/ansible-role-traefik-kubernetes/tree/master/molecule/default).
 
 Afterwards molecule can be executed. Molecule will setup a few VMs with a complete Kubernetes cluster which makes it possible to test the all the Traefik functionality.
 
