@@ -14,7 +14,7 @@ core:
 image:
   registry: docker.io
   repository: traefik
-  tag: "3.6.9"
+  tag: "3.7.13"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
@@ -66,6 +66,8 @@ ports:
     protocol: TCP
     expose:
       default: false
+    http:
+      aliasHeadersStrategy: delete
   # Unsecured incoming HTTP traffic. If you uncomment "redirections" block
   # all traffic that arrives at this port will be redirected to "websecure"
   # entry point which means to the entry point that handles secure HTTPS traffic.
@@ -77,12 +79,25 @@ ports:
   # Internet (what you normally want in case of Traefik ;-) ) For other
   # options see link above. These settings are useful for baremetal or
   # on-premise solutions with no further loadbalancer.
+  #
+  # The web and websecure entry points leave http.encodedCharacters unset.
+  # Traefik 3.7 allows encoded reserved characters in request paths by
+  # default and logs a warning about backends that may interpret them
+  # differently. This preserves compatibility; the warning is expected.
+  # For stricter handling, set ports.web.http.encodedCharacters and
+  # ports.websecure.http.encodedCharacters in custom values, or use an
+  # EncodedCharacters middleware on affected routes. Setting an
+  # allowEncoded* option to false rejects matching paths with HTTP 400
+  # and may break valid application URLs. See:
+  # https://doc.traefik.io/traefik/v3.7/reference/routing-configuration/http/middlewares/encodedcharacters/
   web:
     port: 30080
     hostPort: 80
     expose:
       default: true
     protocol: TCP
+    http:
+      aliasHeadersStrategy: delete
     #redirections:
     #  entryPoint:
     #    to: websecure
@@ -96,8 +111,15 @@ ports:
       default: true
     protocol: TCP
     http:
+      aliasHeadersStrategy: delete
       tls:
         enabled: true
+
+  # The chart enables the metrics entry point by default, without exposing
+  # it through a Service. Keep its other chart defaults unchanged.
+  metrics:
+    http:
+      aliasHeadersStrategy: delete
 
 # When providers.kubernetesGateway.enabled, deploy a default gateway
 gateway:
@@ -152,11 +174,10 @@ podSecurityContext:
   fsGroup: 65532
 
 # Set log level of general log and enable access log.
-logs:
-  general:
-    level: INFO
-  access:
-    enabled: true
+log:
+  level: INFO
+accessLog:
+  enabled: true
 
 # As Traefik web/websecure ports are exposed by "hostPort" a service isn't
 # needed.

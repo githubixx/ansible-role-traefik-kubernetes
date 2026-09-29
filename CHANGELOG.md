@@ -1,5 +1,59 @@
 # Changelog
 
+## 11.0.0+41.6.0
+
+### Important notes for Traefik Helm chart v41.6.0
+
+This update contains a major Traefik Helm chart upgrade from v39.0.2 to v41.6.0. Please check the [Traefik Proxy Helm Chart releases](https://github.com/traefik/traefik-helm-chart/releases) for changes relevant to custom values files.
+
+#### v40.0.0
+
+- [Traefik Helm chart v40.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v40.0.0)
+  - Kubernetes 1.25 or newer is required.
+
+#### v40.2.0
+
+- [Traefik Helm chart v40.2.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v40.2.0)
+  - The chart no longer bundles Gateway API CRDs. Set `traefik_gateway_api_crds` to `standard` or `experimental` if this role should install them. With `none`, this role does not install them; externally managed CRDs are unaffected.
+
+#### v41.0.0
+
+- [Traefik Helm chart v41.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v41.0.0)
+  - Logging values changed from `logs.general` and `logs.access` to `log` and `accessLog`. The role's default values have been updated; custom values files may need the same change.
+  - File-provider content values also changed; the role's default values do not use them.
+
+### Important upgrade notes for Traefik v3.6.9 to v3.7.13
+
+Review the [Traefik v3.7 migration notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/) for changes relevant to your configuration. Here are some potentially important findings:
+
+- [Traefik v3.6.14 upgrade notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v3614)
+  - The [trustForwardHeader option](https://doc.traefik.io/traefik/v3.7/migrate/v3/#forwardauth-middleware-trustforwardheader) has been deprecated and will be removed in the next major version.
+- [Traefik v3.6.19 upgrade notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v3619)
+  - The StripPrefix middleware and the StripPrefixRegex middleware reject requests (400 Bad Request) when stripping the configured prefix produces a path that differs from its normalized form (i.e. a path containing . or .. segments that would be collapsed by normalization)
+- [Traefik v3.6.22 upgrade notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v3622)
+  - `underscoreHeadersStrategy` entry point option deprecated since v3.7.12. Please use the `aliasHeadersStrategy` option instead, which handles every aliasing character instead of the underscore only.
+- [Traefik v3.7.0 upgrade notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v370)
+  - Since v3.7.0, the [Host and HostSNI matchers](https://doc.traefik.io/traefik/v3.7/migrate/v3/#wildcard-host-and-hostsni) support wildcard subdomain matching (e.g., `*.example.com`).
+  - Since v3.7.0, [TLSOptions](https://doc.traefik.io/traefik/v3.7/migrate/v3/#tlsoptions-with-wildcard-domains) can now be associated with routers using wildcard Host and HostSNI matchers (e.g., `Host(*.example.com)`). This enables configuring different TLS options for wildcard domains.
+- [Traefik v3.7.7 upgrade notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v377)
+  - From version v3.7.7 onwards, the `Host` matcher treats a bare `*` as a catch-all, consistent with the TCP `HostSNI(*)` matcher. Host(`*`) now matches every request regardless of its host, including requests with no host at all.
+- [Traefik v3.7.10 upgrade notes](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v3710)
+  - Starting with v3.7.10, the Kubernetes Gateway API provider supports version [v1.6.1 of the specification](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.6.1).
+  - `TCPRoute` graduated to the Standard channel in Gateway API v1.6.0, with a new v1 version. Traefik v3.7 still watches `TCPRoute` through its `v1alpha2` version, which the Standard channel CRDs no longer serve.
+
+### Other changes in 11.0.0+41.6.0
+
+- update Traefik from version `3.6.9` to `3.7.13`
+- update Traefik Helm chart from version `39.0.2` to `41.6.0`
+- update bundled Traefik and Hub CRDs to chart `v41.6.0`
+  - Set `traefik_install_crds: true` to update these CRDs before upgrading the chart
+- update optional Gateway API standard and experimental CRDs to `v1.6.1`
+  - standard now includes `ListenerSet` and TCP, TLS, and UDP routes
+  - experimental replaces `XListenerSet` with `ListenerSet` and includes `XBackendTrafficPolicy` and `XMesh`
+- set `http.aliasHeadersStrategy: delete` on the `traefik`, `web`, `websecure`, and chart-default `metrics` entry points. This drops request headers with names containing characters other than letters, digits, or dashes (such as `X_Auth_User`) before routing, preventing header-name alias spoofing in backends that normalize header names. Applications relying on such headers must use dash-only names or customize the values; see [Traefik's header-alias guidance](https://doc.traefik.io/traefik/v3.7/security/header-aliases/).
+- add `changed_when` to `tasks/(install|template|upgrade).yml` where needed to make tasks idempotent
+- Molecule: add more tests to `verify.yml` / update `molecule.yml`
+
 ## 10.0.0+39.0.2
 
 ### Important notes for Traefik Helm chart v39.0.2

@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.17.1
+    controller-gen.kubebuilder.io/version: v0.21.0
   name: apiauths.hub.traefik.io
 spec:
   group: hub.traefik.io
@@ -41,8 +41,33 @@ spec:
             properties:
               apiKey:
                 description: APIKey configures API key authentication.
+                properties:
+                  keySource:
+                    description: |-
+                      KeySource defines where to extract the API key from requests.
+                      When not specified, defaults to "Authorization" header with "Bearer" scheme and "api_key" query parameter.
+                      When specified, it completely overrides defaults - fields left empty will disable that extraction method.
+                    minProperties: 1
+                    properties:
+                      header:
+                        description: Header is the name of the header containing the
+                          API key.
+                        type: string
+                      headerAuthScheme:
+                        description: |-
+                          HeaderAuthScheme is the authentication scheme prefix in the header value.
+                          The scheme is used to parse headers in the format "<scheme> <token>".
+                          Only applies when header is "Authorization".
+                        type: string
+                      query:
+                        description: Query is the name of the query parameter containing
+                          the API key.
+                        type: string
+                    type: object
+                    x-kubernetes-validations:
+                    - message: headerAuthScheme can only be used when header is 'Authorization'
+                      rule: '!has(self.headerAuthScheme) || self.header == ''Authorization'''
                 type: object
-                x-kubernetes-preserve-unknown-fields: true
               isDefault:
                 description: |-
                   IsDefault specifies if this APIAuth should be used as the default API authentication method for the namespace.
@@ -56,6 +81,34 @@ spec:
                       AppIDClaim is the name of the claim holding the identifier of the application.
                       This field is sometimes named `client_id`.
                     type: string
+                  clientConfig:
+                    description: ClientConfig configures the HTTP client used to fetch
+                      the JWKS from the JWKS URL or the trusted issuers.
+                    properties:
+                      maxRetries:
+                        default: 3
+                        description: MaxRetries defines the maximum number of retry
+                          attempts for failed requests.
+                        type: integer
+                      timeoutSeconds:
+                        default: 5
+                        description: TimeoutSeconds configures the maximum amount
+                          of seconds to wait before giving up on requests.
+                        type: integer
+                      tls:
+                        description: TLS configures TLS for the HTTP client.
+                        properties:
+                          ca:
+                            description: CA sets the CA bundle used to verify the
+                              server certificate.
+                            type: string
+                          insecureSkipVerify:
+                            description: |-
+                              InsecureSkipVerify skips the server certificate validation.
+                              For testing purposes only, do not use in production.
+                            type: boolean
+                        type: object
+                    type: object
                   forwardHeaders:
                     additionalProperties:
                       type: string
@@ -71,6 +124,7 @@ spec:
                     description: |-
                       JWKSURL is the URL to fetch the JWKS for JWT verification.
                       Mutually exclusive with SigningSecretName, PublicKey, JWKSFile, and TrustedIssuers.
+
                       Deprecated: Use TrustedIssuers instead for more flexible JWKS configuration with issuer validation.
                     type: string
                     x-kubernetes-validations:
@@ -143,6 +197,9 @@ spec:
                 - message: only one entry in trustedIssuers may omit the issuer field
                   rule: '!has(self.trustedIssuers) || self.trustedIssuers.filter(x,
                     !has(x.issuer) || x.issuer == "").size() <= 1'
+              keyless:
+                description: Keyless configures keyless authentication.
+                type: object
               ldap:
                 description: LDAP configures LDAP authentication.
                 properties:
@@ -202,8 +259,8 @@ spec:
             type: object
             x-kubernetes-validations:
             - message: exactly one authentication method must be specified
-              rule: '[has(self.apiKey), has(self.jwt), has(self.ldap)].filter(x, x).size()
-                == 1'
+              rule: '[has(self.apiKey), has(self.jwt), has(self.ldap), has(self.keyless)].filter(x,
+                x).size() == 1'
           status:
             description: The current status of this APIAuth.
             properties:

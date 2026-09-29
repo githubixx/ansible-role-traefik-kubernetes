@@ -1,6 +1,6 @@
 ---
 # Helm chart version
-traefik_chart_version: "39.0.2"
+traefik_chart_version: "41.6.0"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -41,16 +41,27 @@ traefik_default_path_matcher_syntax: "v3"
 # the values in "templates/traefik_values_default.yml.j2" by default.
 traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"
 
-# By default CRDs (CustomResourceDefinitions) are not installed. Set to
-# "true" if CRDs should be installed. Also see:
+# By default the role does not pre-apply Traefik/Hub CRDs. Set to "true"
+# to install or update them before the Helm chart. Helm installs missing
+# chart CRDs on a fresh install, but does not upgrade existing CRDs. See:
 # https://github.com/traefik/traefik-helm-chart/tree/master/traefik/crds
 # The following CRDs will be installed:
 #
 #   - accesscontrolpolicies.hub.traefik.io
+#   - aiservices.hub.traefik.io
+#   - apiauths.hub.traefik.io
+#   - apibundles.hub.traefik.io
+#   - apicatalogitems.hub.traefik.io
+#   - apiplans.hub.traefik.io
+#   - apiportalauths.hub.traefik.io
 #   - apiportals.hub.traefik.io
 #   - apiratelimits.hub.traefik.io
 #   - apis.hub.traefik.io
 #   - apiversions.hub.traefik.io
+#   - contentitems.hub.traefik.io
+#   - managedapplications.hub.traefik.io
+#   - managedsubscriptions.hub.traefik.io
+#   - uplinks.hub.traefik.io
 #   - ingressroutes.traefik.io
 #   - ingressroutetcps.traefik.io
 #   - ingressrouteudps.traefik.io
@@ -64,9 +75,8 @@ traefik_chart_values_directory: "{{ '~/traefik/helm' | expanduser }}"
 #
 traefik_install_crds: false
 
-# Specifies which Gateway API CRDs (CustomResourceDefinitions) should
-# be installed. This setting is about installing "*.gateway.networking.k8s.io"
-# CRDs.
+# Specifies which bundled Gateway API CRDs should be installed before the
+# chart. Since chart 40.2.0 Helm does not install Gateway API CRDs itself.
 #
 # By default this setting is "none" which means no Gateway API CRDs will
 # be installed.
@@ -77,34 +87,24 @@ traefik_install_crds: false
 #   - "standard"
 #   - "experimental"
 #
-# "standard" will install the following CRDs and it's stable versions:
+# "standard" will install the following CRDs:
 #
 #   - backendtlspolicies.gateway.networking.k8s.io
 #   - gatewayclasses.gateway.networking.k8s.io
 #   - gateways.gateway.networking.k8s.io
 #   - grpcroutes.gateway.networking.k8s.io
 #   - httproutes.gateway.networking.k8s.io
-#   - referencegrants.gateway.networking.k8s.io
-#
-# "experimental" will install the ones listed in "standard" plus a few
-# more. Please be aware that the "experimental" channel is subject to
-# change and might not be stable. That means that the CRDs might change
-# or be removed in future releases. So the CRDs listed above in "standard"
-# might also contain fields that are subject to change if the "experimental"
-# channel is used. The "experimental" channel installs the following
-# additional CRDs:
-#
-#   - backendtlspolicies.gateway.networking.k8s.io
-#   - gatewayclasses.gateway.networking.k8s.io
-#   - gateways.gateway.networking.k8s.io
-#   - grpcroutes.gateway.networking.k8s.io
-#   - httproutes.gateway.networking.k8s.io
+#   - listenersets.gateway.networking.k8s.io
 #   - referencegrants.gateway.networking.k8s.io
 #   - tcproutes.gateway.networking.k8s.io
 #   - tlsroutes.gateway.networking.k8s.io
 #   - udproutes.gateway.networking.k8s.io
+#
+# "experimental" installs the same CRD names as "standard" (with some
+# experimental fields), plus these experimental CRDs. Their schemas may
+# change or be removed in future releases:
+#
 #   - xbackendtrafficpolicies.gateway.networking.x-k8s.io
-#   - xlistenersets.gateway.networking.x-k8s.io
 #   - xmeshes.gateway.networking.x-k8s.io
 #
 traefik_gateway_api_crds: "none"

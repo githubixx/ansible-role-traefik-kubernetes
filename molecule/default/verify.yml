@@ -30,6 +30,38 @@
         that:
           - (traefik__daemonset_info.resources[0].status.numberReady | default(0) | int) >= 1
 
+    - name: Verify Traefik image, ports, logging and header handling
+      ansible.builtin.assert:
+        that:
+          - traefik__container.image == "docker.io/traefik:3.7.13"
+          - (traefik__container.ports | selectattr('name', 'equalto', 'web') | map(attribute='hostPort') | first) == 80
+          - (traefik__container.ports | selectattr('name', 'equalto', 'websecure') | map(attribute='hostPort') | first) == 443
+          - "'--accesslog=true' in traefik__container.args"
+          - "'--entryPoints.websecure.http.tls=true' in traefik__container.args"
+          - "'--entryPoints.traefik.http.aliasHeadersStrategy=delete' in traefik__container.args"
+          - "'--entryPoints.web.http.aliasHeadersStrategy=delete' in traefik__container.args"
+          - "'--entryPoints.websecure.http.aliasHeadersStrategy=delete' in traefik__container.args"
+          - "'--entryPoints.metrics.http.aliasHeadersStrategy=delete' in traefik__container.args"
+      vars:
+        traefik__container: "{{ traefik__daemonset_info.resources[0].spec.template.spec.containers[0] }}"
+
+    - name: Fetch role-installed CRDs
+      kubernetes.core.k8s_info:
+        api_version: apiextensions.k8s.io/v1
+        kind: CustomResourceDefinition
+      register: traefik__crd_info
+
+    - name: Verify Traefik and Gateway API CRDs
+      ansible.builtin.assert:
+        that:
+          - "'middlewares.traefik.io' in traefik__crd_names"
+          - "'ingressroutes.traefik.io' in traefik__crd_names"
+          - "'gatewayclasses.gateway.networking.k8s.io' in traefik__crd_names"
+          - "'httproutes.gateway.networking.k8s.io' in traefik__crd_names"
+          - "'tcproutes.gateway.networking.k8s.io' in traefik__crd_names"
+      vars:
+        traefik__crd_names: "{{ traefik__crd_info.resources | map(attribute='metadata.name') | list }}"
+
     - name: Create test namespace
       kubernetes.core.k8s:
         api_version: v1
