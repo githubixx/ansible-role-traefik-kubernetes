@@ -1,5 +1,19 @@
 # Changelog
 
+## 12.0.0+42.1.3
+
+### Upgrade notes
+
+- [Helm chart v42.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v42.0.0) requires Kubernetes 1.30 or newer.
+- [Traefik v3.7.15](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v3715) rejects all HTTP CONNECT requests with status 501 before routing, including HTTP/2 and HTTP/3. These requests do not appear in access logs; use a TCP router to expose a forward proxy.
+- [Traefik v3.7.16](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v3716) displays references rather than secret values for Kubernetes CRD middleware secrets in the API, dashboard, and support dumps. Middleware behavior is unchanged.
+
+### Changes
+
+- Update the Helm chart from `41.6.0` to `42.1.3` and Traefik from `3.7.13` to `3.7.16`, including upstream security fixes.
+- Molecule: use the execution user's kubeconfig for all CoreDNS role tasks, including Helm plugin discovery.
+- Molecule: install Traefik by default so a plain converge prepares the scenario for verification.
+
 ## 11.0.0+41.6.0
 
 ### Important notes for Traefik Helm chart v41.6.0
@@ -53,6 +67,7 @@ Review the [Traefik v3.7 migration notes](https://doc.traefik.io/traefik/v3.7/mi
 - set `http.aliasHeadersStrategy: delete` on the `traefik`, `web`, `websecure`, and chart-default `metrics` entry points. This drops request headers with names containing characters other than letters, digits, or dashes (such as `X_Auth_User`) before routing, preventing header-name alias spoofing in backends that normalize header names. Applications relying on such headers must use dash-only names or customize the values; see [Traefik's header-alias guidance](https://doc.traefik.io/traefik/v3.7/security/header-aliases/).
 - add `changed_when` to `tasks/(install|template|upgrade).yml` where needed to make tasks idempotent
 - Molecule: add more tests to `verify.yml` / update `molecule.yml`
+- Molecule: install CoreDNS with `githubixx.coredns` and use Quad9 DNS-over-TLS forwarding
 
 ## 10.0.0+39.0.2
 

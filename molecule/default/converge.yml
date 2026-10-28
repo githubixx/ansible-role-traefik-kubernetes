@@ -1,5 +1,5 @@
 ---
-# Copyright (C) 2024 Robert Wimmer
+# Copyright (C) 2024-2026 Robert Wimmer
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 - name: Gather facts
@@ -16,19 +16,19 @@
   environment:
     K8S_AUTH_KUBECONFIG: "{{ k8s_admin_conf_dir }}/admin.kubeconfig"
   tasks:
-    - name: Include Traefik role
+    - name: Include Traefik role  # noqa: var-naming[no-reserved]
       ansible.builtin.include_role:
         name: githubixx.traefik_kubernetes
       vars:
         #
-        # Install
-        # action: "install"
+        # Install (default for the Molecule scenario)
+        action: "install"
         #
         # Upgrade
         # action: "upgrade"
         #
         # Render Helm chart only
-        action: "template"
+        # action: "template"
         #
         # Delete all resources
         # action: "delete"

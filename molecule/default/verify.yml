@@ -6,10 +6,77 @@
   hosts: test-assets
   environment:
     K8S_AUTH_KUBECONFIG: "{{ k8s_admin_conf_dir }}/admin.kubeconfig"
+  vars:
+    traefik__expected_corefile: >-
+      .:53 {
+      errors
+      health { lameduck 5s }
+      kubernetes cluster.local in-addr.arpa ip6.arpa {
+      pods insecure
+      fallthrough in-addr.arpa ip6.arpa
+      }
+      prometheus :9153
+      forward . tls://9.9.9.9 {
+      tls_servername dns.quad9.net
+      health_check 10s
+      }
+      cache 30
+      loop
+      reload
+      loadbalance
+      ready
+      }
   tasks:
-    - name: Fetch Traefik DaemonSet information
+    - name: Fetch CoreDNS deployment information
+      kubernetes.core.k8s_info:
+        api_version: apps/v1
+        kind: Deployment
+        name: coredns
+        namespace: kube-system
+      register: traefik__coredns_deployment_info
+
+    - name: CoreDNS deployment should exist and have a ready replica
+      ansible.builtin.assert:
+        that:
+          - traefik__coredns_deployment_info.resources | length == 1
+          - (traefik__coredns_deployment_info.resources[0].status.readyReplicas | default(0) | int) >= 1
+        fail_msg: The CoreDNS deployment is missing or has no ready replicas.
+
+    - name: Fetch CoreDNS ConfigMap
       kubernetes.core.k8s_info:
         api_version: v1
+        kind: ConfigMap
+        name: coredns
+        namespace: kube-system
+      register: traefik__coredns_configmap_info
+
+    - name: Fetch cluster DNS Service
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Service
+        name: kube-dns
+        namespace: kube-system
+      register: traefik__coredns_service_info
+
+    - name: Verify the Helm-managed CoreDNS configuration
+      ansible.builtin.assert:
+        that:
+          - traefik__coredns_deployment_info.resources[0].metadata.annotations['githubixx.github.io/coredns-role'] == 'true'
+          - traefik__coredns_deployment_info.resources[0].metadata.annotations['meta.helm.sh/release-name'] == 'coredns'
+          - traefik__coredns_configmap_info.resources | length == 1
+          - traefik__coredns_service_info.resources | length == 1
+          - traefik__coredns_service_info.resources[0].spec.clusterIP == '10.32.0.254'
+          - >-
+            traefik__coredns_service_info.resources[0].spec.ports
+            | selectattr('port', 'equalto', 53) | map(attribute='protocol') | sort | list == ['TCP', 'UDP']
+          - >-
+            traefik__coredns_configmap_info.resources[0].data.Corefile | regex_replace('\s+', ' ') | trim
+            == traefik__expected_corefile | regex_replace('\s+', ' ') | trim
+        fail_msg: CoreDNS is not the expected role-managed release, or its DNS Service or Corefile differs from the scenario configuration.
+
+    - name: Fetch Traefik DaemonSet information
+      kubernetes.core.k8s_info:
+        api_version: apps/v1
         kind: DaemonSet
         name: traefik
         namespace: traefik
@@ -23,7 +90,23 @@
     - name: There should be a DaemonSet called traefik
       ansible.builtin.assert:
         that:
-          - traefik__daemonset_info.resources[0].metadata.name == "traefik"
+          - traefik__daemonset_info.resources | length == 1
+        fail_msg: >-
+          Traefik DaemonSet was not found in the traefik namespace.
+          Run molecule converge with action=install before molecule verify.
+
+    - name: Wait for a Traefik pod to become ready
+      kubernetes.core.k8s_info:
+        api_version: apps/v1
+        kind: DaemonSet
+        name: traefik
+        namespace: traefik
+      register: traefik__daemonset_info
+      until: >-
+        (traefik__daemonset_info.resources | length == 1)
+        and ((traefik__daemonset_info.resources[0].status.numberReady | default(0) | int) >= 1)
+      retries: 30
+      delay: 10
 
     - name: There should be at least one Traefik pod running
       ansible.builtin.assert:
@@ -33,7 +116,7 @@
     - name: Verify Traefik image, ports, logging and header handling
       ansible.builtin.assert:
         that:
-          - traefik__container.image == "docker.io/traefik:3.7.13"
+          - traefik__container.image == "docker.io/traefik:3.7.16"
           - (traefik__container.ports | selectattr('name', 'equalto', 'web') | map(attribute='hostPort') | first) == 80
           - (traefik__container.ports | selectattr('name', 'equalto', 'websecure') | map(attribute='hostPort') | first) == 443
           - "'--accesslog=true' in traefik__container.args"
@@ -104,6 +187,25 @@
       retries: 30
       delay: 10
 
+    - name: Resolve cluster and public names through CoreDNS
+      become: true
+      become_user: vagrant
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - -n
+          - test
+          - exec
+          - deployment/test
+          - --
+          - getent
+          - ahostsv4
+          - "{{ item }}"
+      loop:
+        - kubernetes.default.svc.cluster.local
+        - example.com.
+      changed_when: false
+
     - name: Get homepage from test deployment - www.example-v2.com
       ansible.builtin.get_url:
         url: "http://10.10.10.200"
@@ -137,7 +239,7 @@
     - name: Delete test IngressRoute - Traefik v2 syntax
       kubernetes.core.k8s:
         name: "test-v2"
-        api_version: "v1alpha1"
+        api_version: "traefik.io/v1alpha1"
         kind: "IngressRoute"
         namespace: "test"
         state: absent
@@ -145,7 +247,7 @@
     - name: Delete test IngressRoute - Traefik v3 syntax
       kubernetes.core.k8s:
         name: "test-v3"
-        api_version: "v1alpha1"
+        api_version: "traefik.io/v1alpha1"
         kind: "IngressRoute"
         namespace: "test"
         state: absent

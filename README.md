@@ -29,7 +29,7 @@ A properly configured `KUBECONFIG` is also needed (which is located at `${HOME}/
 
 Additionally the Ansible `kubernetes.core` collection needs to be installed. This can be done by using the `collections.yml` file included in this role: `ansible-galaxy install -r collections.yml`.
 
-Helm chart 41.6.0 requires Kubernetes 1.25 or newer.
+Helm chart 42.1.3 requires Kubernetes 1.30 or newer.
 
 And of course you need a Kubernetes Cluster ;-)
 
@@ -40,6 +40,20 @@ And of course you need a Kubernetes Cluster ;-)
 See full [CHANGELOG.md](https://github.com/githubixx/ansible-role-traefik-kubernetes/blob/master/CHANGELOG.md)
 
 **Recent changes:**
+
+## 12.0.0+42.1.3
+
+### Upgrade notes
+
+- [Helm chart v42.0.0](https://github.com/traefik/traefik-helm-chart/releases/tag/v42.0.0) requires Kubernetes 1.30 or newer.
+- [Traefik v3.7.15](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v3715) rejects all HTTP CONNECT requests with status 501 before routing, including HTTP/2 and HTTP/3. These requests do not appear in access logs; use a TCP router to expose a forward proxy.
+- [Traefik v3.7.16](https://doc.traefik.io/traefik/v3.7/migrate/v3/#v3716) displays references rather than secret values for Kubernetes CRD middleware secrets in the API, dashboard, and support dumps. Middleware behavior is unchanged.
+
+### Changes
+
+- Update the Helm chart from `41.6.0` to `42.1.3` and Traefik from `3.7.13` to `3.7.16`, including upstream security fixes.
+- Molecule: use the execution user's kubeconfig for all CoreDNS role tasks, including Helm plugin discovery.
+- Molecule: install Traefik by default so a plain converge prepares the scenario for verification.
 
 ## 11.0.0+41.6.0
 
@@ -94,6 +108,7 @@ Review the [Traefik v3.7 migration notes](https://doc.traefik.io/traefik/v3.7/mi
 - set `http.aliasHeadersStrategy: delete` on all four default entry points (`traefik`, `web`, `websecure`, `metrics`). Headers with names containing characters other than letters, digits, or dashes are dropped before routing; applications relying on those headers should use dash-only names or custom values. See [Traefik's header-alias guidance](https://doc.traefik.io/traefik/v3.7/security/header-aliases/).
 - add `changed_when` to `tasks/(install|template|upgrade).yml` where needed to make tasks idempotent
 - Molecule: add more tests to `verify.yml` / update `molecule.yml`
+- Molecule: install CoreDNS with `githubixx.coredns` and use Quad9 DNS-over-TLS forwarding
 
 ## 10.0.0+39.0.2
 
@@ -246,7 +261,7 @@ This update contains a rather big update of the Traefik Helm chart from v33.2.1 
 
 ```yaml
 # Helm chart version
-traefik_chart_version: "41.6.0"
+traefik_chart_version: "42.1.3"
 
 # Helm release name
 traefik_release_name: "traefik"
@@ -407,7 +422,7 @@ core:
 image:
   registry: docker.io
   repository: traefik
-  tag: "3.7.13"
+  tag: "3.7.16"
   pullPolicy: IfNotPresent
 
 # These arguments are passed to Traefik's binary. For all options see:
@@ -668,16 +683,20 @@ This role has a small test setup that is created using [Molecule](https://github
 
 Afterwards molecule can be executed. Molecule will setup a few VMs with a complete Kubernetes cluster which makes it possible to test the all the Traefik functionality.
 
-The following command will do a basic setup and create a template of the resources (default action see above) that will be created:
+During preparation, the scenario installs [CoreDNS](https://github.com/githubixx/ansible-role-coredns-kubernetes) with the `githubixx.coredns` role, which must be available in the configured Ansible roles path alongside the other scenario roles. The assets VM uses Helm 3.19.5, helm-diff 3.14.0, and a guest-local Kubernetes Python SDK bootstrapped with uv 0.13.6. CoreDNS keeps the previous plugin order, `cluster.local` domain and `10.32.0.254` Service IP, but forwards external queries to Quad9 over authenticated DNS-over-TLS (`tls_servername dns.quad9.net`). Clients still use UDP or TCP DNS; the CoreDNS pods need outbound TCP port 853 and a trusted CA bundle.
+
+The CoreDNS role does not adopt the old unmanaged resources. Use a fresh Molecule scenario rather than rerunning preparation against an existing cluster with the old CoreDNS installation.
+
+The following command sets up the cluster and installs Traefik for verification. This scenario default does not change the role's template-only default outside Molecule:
 
 ```bash
 molecule converge
 ```
 
-Installing `Traefik` and the required resources:
+To render the Traefik resources without installing them:
 
 ```bash
-molecule converge -- --extra-vars action=install
+molecule converge -- --extra-vars action=template
 ```
 
 Upgrading `Traefik` or changing parameters:
@@ -692,7 +711,7 @@ Deleting `Traefik` and its resources:
 molecule converge -- --extra-vars action=delete
 ```
 
-To run a few tests use
+To run a few tests after installing Traefik use
 
 ```bash
 molecule verify

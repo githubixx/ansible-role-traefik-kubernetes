@@ -2,6 +2,76 @@
 # Copyright (C) 2024 Robert Wimmer
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+- name: Prepare the assets host Kubernetes SDK
+  hosts: k8s_assets
+  gather_facts: false
+  tasks:
+    - name: Bootstrap the guest-local SDK as the execution user
+      become: false
+      vars:
+        ansible_become: false
+        ansible_python_interpreter: python3
+        # Pin the upstream Linux x86_64 uv archive used on the assets VM.
+        traefik__uv_version: "0.13.6"
+
+        # SHA-256 digest of the archive for the pinned version.
+        traefik__uv_checksum: "f29c3e94ffabd7e6f3ba521dba169a9b7ec12100bf3257087f0f24f6123f3645"
+      block:
+        - name: Gather assets host facts with the system interpreter
+          ansible.builtin.setup:
+
+        - name: Require the supported guest architecture
+          ansible.builtin.assert:
+            that: ansible_facts.architecture == 'x86_64'
+            fail_msg: The pinned Molecule uv archive requires an x86_64 assets guest.
+
+        - name: Create guest-local SDK directories
+          ansible.builtin.file:
+            path: "{{ item }}"
+            state: directory
+            mode: "0755"
+          loop:
+            - "~/.cache/traefik-molecule"
+            - "~/.local/share/traefik-molecule"
+            - "~/.local/share/traefik-molecule/uv-{{ traefik__uv_version }}"
+
+        - name: Download the pinned uv archive
+          ansible.builtin.get_url:
+            url: "https://github.com/astral-sh/uv/releases/download/{{ traefik__uv_version }}/uv-x86_64-unknown-linux-gnu.tar.gz"
+            dest: "~/.cache/traefik-molecule/uv-{{ traefik__uv_version }}.tar.gz"
+            checksum: "sha256:{{ traefik__uv_checksum }}"
+            mode: "0644"
+
+        - name: Extract the guest-local uv binary
+          ansible.builtin.unarchive:
+            src: "~/.cache/traefik-molecule/uv-{{ traefik__uv_version }}.tar.gz"
+            dest: "~/.local/share/traefik-molecule/uv-{{ traefik__uv_version }}"
+            remote_src: true
+            extra_opts: [--strip-components=1]
+            creates: "~/.local/share/traefik-molecule/uv-{{ traefik__uv_version }}/uv"
+
+        - name: Create the guest-local SDK environment
+          ansible.builtin.command:
+            argv: [".local/share/traefik-molecule/uv-{{ traefik__uv_version }}/uv", venv, --python, python3, "{{ traefik__assets_sdk_directory }}"]
+            chdir: /home/vagrant
+            creates: "{{ traefik__assets_sdk_directory }}/bin/python"
+
+        - name: Install supported Kubernetes SDK dependencies
+          ansible.builtin.command:
+            argv:
+              - ".local/share/traefik-molecule/uv-{{ traefik__uv_version }}/uv"
+              - pip
+              - install
+              - --python
+              - "{{ traefik__assets_sdk_directory }}/bin/python"
+              - kubernetes==35.0.0
+              - PyYAML
+              - jsonpatch
+              - cryptography
+            chdir: /home/vagrant
+          register: traefik__assets_sdk_install
+          changed_when: "'Installed ' in traefik__assets_sdk_install.stderr or 'Uninstalled ' in traefik__assets_sdk_install.stderr"
+
 - name: Update cache
   hosts: k8s
   remote_user: vagrant
@@ -84,6 +154,8 @@
       vars:
         packages:
           - conntrack
+          - git
+          - python3-pip
 
     - name: Install kubernetes Python package
       ansible.builtin.package:
@@ -93,6 +165,15 @@
     - name: Install Helm role
       ansible.builtin.include_role:
         name: gantsign.helm
+
+    - name: Install Helm diff plugin for the execution user
+      become: false
+      kubernetes.core.helm_plugin:
+        plugin_path: https://github.com/databus23/helm-diff
+        plugin_version: v3.14.0
+        state: present
+      vars:
+        ansible_become: false
 
 - name: Setup HAProxy
   hosts: haproxy
@@ -205,10 +286,12 @@
       ansible.builtin.include_tasks:
         file: tasks/taint_controller_nodes.yml
 
-    - name: Install CoreDNS
-      ansible.builtin.include_tasks:
-        file: tasks/coredns.yml
-
-    - name: Waiting for CoreDNS to become ready
-      ansible.builtin.include_tasks:
-        file: tasks/coredns_status.yml
+    - name: Install CoreDNS as the execution user
+      environment:
+        K8S_AUTH_KUBECONFIG: "{{ coredns_kubeconfig }}"
+      block:
+        - name: Include CoreDNS role
+          ansible.builtin.include_role:
+            name: githubixx.coredns
+          vars:
+            ansible_become: false
