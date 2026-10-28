@@ -286,8 +286,12 @@
       ansible.builtin.include_tasks:
         file: tasks/taint_controller_nodes.yml
 
-    - name: Install CoreDNS
-      ansible.builtin.include_role:
-        name: githubixx.coredns
-      vars:
-        ansible_become: false
+    - name: Install CoreDNS as the execution user
+      environment:
+        K8S_AUTH_KUBECONFIG: "{{ coredns_kubeconfig }}"
+      block:
+        - name: Include CoreDNS role
+          ansible.builtin.include_role:
+            name: githubixx.coredns
+          vars:
+            ansible_become: false

@@ -76,7 +76,7 @@
 
     - name: Fetch Traefik DaemonSet information
       kubernetes.core.k8s_info:
-        api_version: v1
+        api_version: apps/v1
         kind: DaemonSet
         name: traefik
         namespace: traefik
@@ -90,7 +90,23 @@
     - name: There should be a DaemonSet called traefik
       ansible.builtin.assert:
         that:
-          - traefik__daemonset_info.resources[0].metadata.name == "traefik"
+          - traefik__daemonset_info.resources | length == 1
+        fail_msg: >-
+          Traefik DaemonSet was not found in the traefik namespace.
+          Run molecule converge with action=install before molecule verify.
+
+    - name: Wait for a Traefik pod to become ready
+      kubernetes.core.k8s_info:
+        api_version: apps/v1
+        kind: DaemonSet
+        name: traefik
+        namespace: traefik
+      register: traefik__daemonset_info
+      until: >-
+        (traefik__daemonset_info.resources | length == 1)
+        and ((traefik__daemonset_info.resources[0].status.numberReady | default(0) | int) >= 1)
+      retries: 30
+      delay: 10
 
     - name: There should be at least one Traefik pod running
       ansible.builtin.assert:
@@ -100,7 +116,7 @@
     - name: Verify Traefik image, ports, logging and header handling
       ansible.builtin.assert:
         that:
-          - traefik__container.image == "docker.io/traefik:3.7.13"
+          - traefik__container.image == "docker.io/traefik:3.7.16"
           - (traefik__container.ports | selectattr('name', 'equalto', 'web') | map(attribute='hostPort') | first) == 80
           - (traefik__container.ports | selectattr('name', 'equalto', 'websecure') | map(attribute='hostPort') | first) == 443
           - "'--accesslog=true' in traefik__container.args"
@@ -223,7 +239,7 @@
     - name: Delete test IngressRoute - Traefik v2 syntax
       kubernetes.core.k8s:
         name: "test-v2"
-        api_version: "v1alpha1"
+        api_version: "traefik.io/v1alpha1"
         kind: "IngressRoute"
         namespace: "test"
         state: absent
@@ -231,7 +247,7 @@
     - name: Delete test IngressRoute - Traefik v3 syntax
       kubernetes.core.k8s:
         name: "test-v3"
-        api_version: "v1alpha1"
+        api_version: "traefik.io/v1alpha1"
         kind: "IngressRoute"
         namespace: "test"
         state: absent
