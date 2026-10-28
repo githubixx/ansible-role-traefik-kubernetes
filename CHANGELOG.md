@@ -1,5 +1,11 @@
 # Changelog
 
+## 12.0.1+42.1.3
+
+### Fixes
+
+- Pin the Galaxy release workflow to Python 3.13 and Ansible Core 2.19 to avoid incompatible Python releases.
+
 ## 12.0.0+42.1.3
 
 ### Upgrade notes
