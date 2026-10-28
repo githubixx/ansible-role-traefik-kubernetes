@@ -21,18 +21,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
         with:
           path: 'githubixx.traefik_kubernetes'
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.x'
+          python-version: '3.13'
+
+      - name: Set up uv.
+        uses: astral-sh/setup-uv@v6
 
       - name: Install Ansible.
-        run: pip3 install ansible-core
+        run: |
+          uv venv --python 3.13
+          uv pip install 'ansible-core>=2.19,<2.20'
 
       - name: Trigger a new import on Galaxy.
-        run: >-
-          ansible-galaxy role import --token ${{ secrets.GALAXY_API_KEY }} -vvvvvvvv --role-name=$(echo ${{ github.repository }} | cut -d/ -f2 | sed 's/ansible-role-//' | sed 's/-/_/') $(echo ${{ github.repository }} | cut -d/ -f1) $(echo ${{ github.repository }} | cut -d/ -f2)
+        env:
+          GALAXY_API_KEY: ${{ secrets.GALAXY_API_KEY }}
+        run: |
+          source .venv/bin/activate
+          repo="${GITHUB_REPOSITORY#*/}"
+          role_name="${repo#ansible-role-}"
+          role_name="${role_name/-/_}"
+          ansible-galaxy role import --token "$GALAXY_API_KEY" -vvvvvvvv \
+            --role-name="$role_name" "${GITHUB_REPOSITORY%/*}" "$repo"
